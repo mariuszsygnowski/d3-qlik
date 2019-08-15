@@ -60,7 +60,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .domain([0, dataNamesX.length])
         .interpolator(d3.interpolateSinebow);
 
-      const xScaleBand = d3
+      const xScale = d3
         .scaleBand()
         .domain(allValuesXArray) // input
         .range([0, innerWidth])
@@ -82,10 +82,10 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .transition(t)
         .attr('y', d => margin.top + yScale(d[0].qNum))
         .attr('x', (d, i) => {
-          return xScaleBand(d[0].qText);
+          return xScale(d[0].qText);
         })
         .attr('width', (d, i) => {
-          return xScaleBand.bandwidth();
+          return xScale.bandwidth();
         })
         .attr('height', function(d) {
           return innerHeight - yScale(d[0].qNum);
@@ -165,46 +165,64 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       if (widthWindow > 1200) {
         translateAndRotate = 'translate(0,0) rotate(0)';
       }
-      SVG.selectAll('g.xaxis')
-        .data(['create only one element g so in this array is only one element'])
-        .join(
-          enter =>
-            enter
-              .append('g')
-              .attr('class', 'xaxis')
-              .attr('transform', `translate(${margin.left},${heightWindow - margin.bottom})`)
-              .call(d3.axisBottom(xScaleBand))
-              .selectAll('text')
-              .attr('transform', translateAndRotate),
-          update =>
-            update
-              .transition(t)
-              .attr('transform', `translate(${margin.left},${heightWindow - margin.bottom})`)
-              .call(d3.axisBottom(xScaleBand))
-              .selectAll('text')
-              .attr('transform', translateAndRotate),
-          exit => exit.selectAll('g').remove()
+      var allGXaxis = SVG.selectAll('g.xaxis').data(['create only one element g so in this array is only one element']);
+
+      allGXaxis
+        .enter()
+        .append('g')
+        .attr('class', 'xaxis')
+        .merge(allGXaxis)
+        .transition(t)
+        .attr('transform', `translate(${margin.left},${heightWindow - margin.bottom})`)
+        .call(d3.axisBottom(xScale))
+        .selectAll('text')
+        .attr('transform', translateAndRotate);
+
+      allGXaxis.exit().remove();
+
+      var allGYaxis = SVG.selectAll('g.yaxis').data(['create only one element g so in this array is only one element']);
+
+      function yAxisTickFormat(number) {
+        return d3
+          .format('.2s')(number)
+          .replace('M', function() {
+            if (number < 2000000) return ' Million';
+            return ' Millions';
+          })
+          .replace('G', function() {
+            if (number < 2000000000) return ' Billion';
+            return ' Billions';
+          });
+      }
+
+      allGYaxis
+        .enter()
+        .append('g')
+        .attr('class', 'yaxis')
+        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+        .merge(allGYaxis)
+        .transition(t)
+        .call(
+          d3
+            .axisLeft(yScale)
+            .ticks(heightWindow < 400 ? data.length / 3 : data.length)
+            .tickFormat(yAxisTickFormat)
         );
 
-      SVG.selectAll('g.yaxis')
-        .data(['create only one element g so in this array is only one element'])
-        .join(
-          enter =>
-            enter
-              .append('g')
-              .attr('class', 'yaxis')
-              .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-              .call(
-                d3.axisLeft(yScale).ticks(heightWindow < 400 ? data.firstValue.length / 3 : data.firstValue.length)
-              ),
-          update =>
-            update
-              .transition(t)
-              .call(
-                d3.axisLeft(yScale).ticks(heightWindow < 400 ? data.firstValue.length / 3 : data.firstValue.length)
-              ),
-          exit => exit.selectAll('g').remove()
-        );
+      allGYaxis.exit().remove();
+
+      SVG.selectAll('rect').each(function() {
+        this.classList.remove('selected');
+      });
+
+      SVG.selectAll('rect').on('click', function() {
+        if (this.hasAttribute('data-value')) {
+          var value = parseInt(this.getAttribute('data-value')),
+            dim = 0;
+          self.selectValues(dim, [value], true);
+          this.classList.toggle('selected');
+        }
+      });
     };
     createChart();
   }, [data.firstValue, widthWindow, heightWindow, isUpdated, selectedValuesArray]);
