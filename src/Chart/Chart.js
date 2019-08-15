@@ -83,51 +83,80 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .attr('transform', `translate(${margin.left},${heightWindow - margin.bottom})`);
 
       const numberOfDimensions = 3;
-      const allRectsF = rectGroup.selectAll('rect.firstValue').data(data.firstValue);
+      const colors = ['red', 'blue', 'green'];
 
-      allRectsF
-        .enter()
-        .append('rect')
-        .attr('class', 'firstValue')
-        .merge(allRectsF)
-        .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
-        .transition(t)
-        .attr('y', d => margin.top + yScale(d[0].qNum))
-        .attr('x', (d, i) => {
-          return xScale(d[0].qText);
-        })
-        .attr('width', (d, i) => {
-          return xScale.bandwidth();
-        })
-        .attr('height', function(d) {
-          return innerHeight - yScale(d[0].qNum);
-        })
-        .attr('fill', (d, i) => {
-          return COLOR(i);
-        });
+      Object.entries(data).forEach(([key, val], index) => {
+        console.log(`key:`, key);
+        console.log(`val:`, val);
+        console.log(`index:`, index);
 
-      const allRectsS = rectGroup.selectAll('rect.secondValue').data(data.secondValue);
+        const allRectsInCurrentIteration = rectGroup.selectAll(`rect.${key}`).data(val);
+        allRectsInCurrentIteration
+          .enter()
+          .append('rect')
+          .attr('class', `${key}`)
+          .merge(allRectsInCurrentIteration)
+          .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
+          .transition(t)
+          .attr('y', d => margin.top + yScale(d[0].qNum))
+          .attr('x', (d, i) => {
+            return xScale(d[0].qText);
+          })
+          .attr('width', (d, i) => {
+            return xScale.bandwidth();
+          })
+          .attr('height', function(d) {
+            return innerHeight - yScale(d[0].qNum);
+          })
+          .attr('fill', (d, i) => {
+            return colors[index];
+          });
+      });
+      // const allRectsF = rectGroup.selectAll('rect.firstValue').data(data.firstValue);
 
-      allRectsS
-        .enter()
-        .append('rect')
-        .attr('class', 'secondValue')
-        .merge(allRectsS)
-        .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
-        .transition(t)
-        .attr('y', d => margin.top + yScale(d[0].qNum))
-        .attr('x', (d, i) => {
-          return xScale(d[0].qText);
-        })
-        .attr('width', (d, i) => {
-          return xScale.bandwidth();
-        })
-        .attr('height', function(d) {
-          return innerHeight - yScale(d[0].qNum);
-        })
-        .attr('fill', (d, i) => {
-          return 'black';
-        });
+      // allRectsF
+      //   .enter()
+      //   .append('rect')
+      //   .attr('class', 'firstValue')
+      //   .merge(allRectsF)
+      //   .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
+      //   .transition(t)
+      //   .attr('y', d => margin.top + yScale(d[0].qNum))
+      //   .attr('x', (d, i) => {
+      //     return xScale(d[0].qText);
+      //   })
+      //   .attr('width', (d, i) => {
+      //     return xScale.bandwidth();
+      //   })
+      //   .attr('height', function(d) {
+      //     return innerHeight - yScale(d[0].qNum);
+      //   })
+      //   .attr('fill', (d, i) => {
+      //     return COLOR(i);
+      //   });
+
+      // const allRectsS = rectGroup.selectAll('rect.secondValue').data(data.secondValue);
+
+      // allRectsS
+      //   .enter()
+      //   .append('rect')
+      //   .attr('class', 'secondValue')
+      //   .merge(allRectsS)
+      //   .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
+      //   .transition(t)
+      //   .attr('y', d => margin.top + yScale(d[0].qNum))
+      //   .attr('x', (d, i) => {
+      //     return xScale(d[0].qText);
+      //   })
+      //   .attr('width', (d, i) => {
+      //     return xScale.bandwidth();
+      //   })
+      //   .attr('height', function(d) {
+      //     return innerHeight - yScale(d[0].qNum);
+      //   })
+      //   .attr('fill', (d, i) => {
+      //     return 'black';
+      //   });
 
       //----------beginning: many dimensions
       // allRects
