@@ -210,19 +210,6 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         );
 
       allGYaxis.exit().remove();
-
-      SVG.selectAll('rect').each(function() {
-        this.classList.remove('selected');
-      });
-
-      SVG.selectAll('rect').on('click', function() {
-        if (this.hasAttribute('data-value')) {
-          var value = parseInt(this.getAttribute('data-value')),
-            dim = 0;
-          self.selectValues(dim, [value], true);
-          this.classList.toggle('selected');
-        }
-      });
     };
     createChart();
   }, [data.firstValue, widthWindow, heightWindow, isUpdated, selectedValuesArray]);
