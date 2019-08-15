@@ -47,44 +47,49 @@ const App = () => {
 
   useEffect(() => {
     //--------------beginning: version 1 when working on real data
-    // qlikApp(config).then(qlikObjects => {
-    //   setApp(qlikObjects.app);
-    //   if (app) {
-    //     app.createCube(dataCreateCube, reply => {
-    //       const newDataCube = reply.qHyperCube.qDataPages[0].qMatrix
-    //         .filter(e => e[0].qNum !== 'NaN')
-    //         .map(e => [{qText: e[0].qText, qNum: e[1].qNum, qElemNumber: e[0].qElemNumber}]);
-    //       setDataCube(newDataCube);
-    //       setIsCreateCubeDone(true);
-    //     });
-    //     app.createList(dataCreateList, reply => {
-    //       const arrayWithData = [...reply.qListObject.qDataPages[0].qMatrix];
+    qlikApp(config).then(qlikObjects => {
+      setApp(qlikObjects.app);
+      if (app) {
+        app.createCube(dataCreateCube, reply => {
+          // console.log(`reply.qHyperCube.qDataPages:`, reply);
+          const newDataCube1 = reply.qHyperCube.qDataPages[0].qMatrix
+            .filter(e => e[0].qNum !== 'NaN')
+            .map(e => [{qText: e[0].qText, qNum: e[1].qNum, qElemNumber: e[0].qElemNumber}]);
+          const newDataCube2 = reply.qHyperCube.qDataPages[0].qMatrix
+            .filter(e => e[0].qNum !== 'NaN')
+            .map(e => [{qText: e[0].qText, qNum: e[2].qNum, qElemNumber: e[0].qElemNumber}]);
+          const newDataCube = {firstValue: newDataCube2, secondValue: newDataCube1};
+          setDataCube(newDataCube);
+          setIsCreateCubeDone(true);
+        });
+        app.createList(dataCreateList, reply => {
+          const arrayWithData = [...reply.qListObject.qDataPages[0].qMatrix];
 
-    //       const COLOR = d3
-    //         .scaleSequential()
-    //         .domain([0, arrayWithData.length])
-    //         .interpolator(d3.interpolateSinebow);
+          const COLOR = d3
+            .scaleSequential()
+            .domain([0, arrayWithData.length])
+            .interpolator(d3.interpolateSinebow);
 
-    //       const dataText = arrayWithData.map((e, i) => [e[0].qText, COLOR(i)]);
-    //       setDataNamesX(dataText);
-    //       setIsCreateListDone(true);
-    //     });
-    //   }
-    // });
+          const dataText = arrayWithData.map((e, i) => [e[0].qText, COLOR(i)]);
+          setDataNamesX(dataText);
+          setIsCreateListDone(true);
+        });
+      }
+    });
     //--------------end: version 1 when working on real data
 
     //--------------beginning: version 2 when working on static data
-    setDataCube(values);
+    // setDataCube(values);
 
-    const COLOR = d3
-      .scaleSequential()
-      .domain([0, values.firstValue.length])
-      .interpolator(d3.interpolateSinebow);
+    // const COLOR = d3
+    //   .scaleSequential()
+    //   .domain([0, values.firstValue.length])
+    //   .interpolator(d3.interpolateSinebow);
 
-    const dataText = values.firstValue.map((e, i) => [e[0].qText, COLOR(i)]);
-    setDataNamesX(dataText);
-    setIsCreateCubeDone(true);
-    setIsCreateListDone(true);
+    // const dataText = values.firstValue.map((e, i) => [e[0].qText, COLOR(i)]);
+    // setDataNamesX(dataText);
+    // setIsCreateCubeDone(true);
+    // setIsCreateListDone(true);
     //--------------end: version 2 when working on static data
   }, [isCreateCubeDone, isCreateListDone, app]);
 

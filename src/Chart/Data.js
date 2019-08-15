@@ -23,7 +23,12 @@ const dataCreateCube = {
   qMeasures: [
     {
       qDef: {
-        qDef: 'sum([Sales Amount])'
+        qDef: 'avg([Sales Amount])'
+      }
+    },
+    {
+      qDef: {
+        qDef: 'max([Sales Amount])'
       }
     }
   ],
@@ -31,8 +36,8 @@ const dataCreateCube = {
     {
       qTop: 0,
       qLeft: 0,
-      qHeight: 5000,
-      qWidth: 2
+      qHeight: 500,
+      qWidth: 17
     }
   ]
 };
@@ -45,7 +50,7 @@ const dataCreateList = {
     {
       qTop: 0,
       qLeft: 0,
-      qHeight: 5000,
+      qHeight: 2000,
       qWidth: 2
     }
   ]

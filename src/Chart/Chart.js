@@ -3,6 +3,7 @@ import {} from './CurrentSelectionTab';
 import React, {useState, useEffect, useRef} from 'react';
 import * as d3 from 'd3';
 import './Chart.scss';
+import {values} from './Values';
 // import CurrentSelectionTab from './CurrentSelectionTab';
 
 const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
@@ -52,6 +53,8 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       .attr('height', heightWindow);
 
     const createChart = () => {
+      console.log(`values:`, values);
+      console.log(`data:`, data);
       const allValuesYArray = data.firstValue.map(e => e[0].qNum);
       const allValuesXArray = data.firstValue.map(e => e[0].qText);
 
@@ -91,6 +94,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         console.log(`index:`, index);
 
         const allRectsInCurrentIteration = rectGroup.selectAll(`rect.${key}`).data(val);
+
         allRectsInCurrentIteration
           .enter()
           .append('rect')
@@ -111,6 +115,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
           .attr('fill', (d, i) => {
             return colors[index];
           });
+        allRectsInCurrentIteration.exit().remove();
       });
       // const allRectsF = rectGroup.selectAll('rect.firstValue').data(data.firstValue);
 
@@ -158,7 +163,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       //     return 'black';
       //   });
 
-      //----------beginning: many dimensions
+      //--------------------beginning: many dimensions
       // allRects
       //   .enter()
       //   .append('rect')
@@ -202,7 +207,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       // .attr('fill', (d, i) => {
       //   return isUpdated ? COLOR(i) : COLOR(i);
       // });
-      //----------end: many dimensions
+      //--------------------end: many dimensions
 
       //--------------------begin "on click"
       // const opacityValue = 0.5;
