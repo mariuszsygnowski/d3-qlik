@@ -71,14 +71,26 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .domain([d3.max(allValuesYArray) * 1.05, 0]) // input
         .range([0, innerHeight]); // output
 
-      const allRects = SVG.selectAll('rect') //UPDATE
-        .data(data.firstValue);
+      const allGRects = SVG.selectAll('g.allrects').data([
+        'create only one element g so in this array is only one element'
+      ]);
 
-      allRects
+      const rectGroup = allGRects
+        .enter()
+        .append('g')
+        .attr('class', 'allrects')
+        .merge(allGRects)
+        .attr('transform', `translate(${margin.left},${heightWindow - margin.bottom})`);
+
+      const numberOfDimensions = 3;
+      const allRectsF = rectGroup.selectAll('rect.firstValue').data(data.firstValue);
+
+      allRectsF
         .enter()
         .append('rect')
-        .attr('id', d => d[0].qElemNumber)
-        .merge(allRects)
+        .attr('class', 'firstValue')
+        .merge(allRectsF)
+        .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
         .transition(t)
         .attr('y', d => margin.top + yScale(d[0].qNum))
         .attr('x', (d, i) => {
@@ -90,10 +102,78 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .attr('height', function(d) {
           return innerHeight - yScale(d[0].qNum);
         })
-        .attr('transform', `translate(${margin.left},${-1})`)
         .attr('fill', (d, i) => {
-          return isUpdated ? COLOR(i) : COLOR(i);
+          return COLOR(i);
         });
+
+      const allRectsS = rectGroup.selectAll('rect.secondValue').data(data.secondValue);
+
+      allRectsS
+        .enter()
+        .append('rect')
+        .attr('class', 'secondValue')
+        .merge(allRectsS)
+        .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
+        .transition(t)
+        .attr('y', d => margin.top + yScale(d[0].qNum))
+        .attr('x', (d, i) => {
+          return xScale(d[0].qText);
+        })
+        .attr('width', (d, i) => {
+          return xScale.bandwidth();
+        })
+        .attr('height', function(d) {
+          return innerHeight - yScale(d[0].qNum);
+        })
+        .attr('fill', (d, i) => {
+          return 'black';
+        });
+
+      //----------beginning: many dimensions
+      // allRects
+      //   .enter()
+      //   .append('rect')
+      //   .merge(allRects)
+      //   .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
+      //   .transition(t)
+      //   .attr('y', d => margin.top + yScale(d[0].qNum))
+      //   .attr('x', (d, i) => {
+      //     console.log(`xScale(d[0].qText):`, xScale(d[0].qText));
+      //     console.log(`xScale.bandwidth():`, xScale.bandwidth());
+      //     return xScale(d[0].qText) + xScale.bandwidth() / numberOfDimensions;
+      //   })
+      //   .attr('width', (d, i) => {
+      //     return xScale.bandwidth() / numberOfDimensions;
+      //   })
+      //   .attr('height', function(d) {
+      //     return innerHeight - yScale(d[0].qNum);
+      //   })
+      //   .attr('fill', (d, i) => {
+      //     return isUpdated ? COLOR(i) : COLOR(i);
+      //   });
+
+      // const allRects = rectGroup.selectAll('rect').data(data.firstValue);
+      // console.log(`allRects:`, allRects);
+      // allGRects
+      //   .enter()
+      //   .append('rect')
+      //   .merge(allRects);
+      // .transition(t)
+      // .attr('y', d => margin.top + yScale(d[0].qNum))
+      // .attr('x', (d, i) => {
+      //   return xScale(d[0].qText);
+      // })
+      // .attr('width', (d, i) => {
+      //   return xScale.bandwidth();
+      // })
+      // .attr('height', function(d) {
+      //   return innerHeight - yScale(d[0].qNum);
+      // })
+      // .attr('transform', `translate(${margin.left},${-1})`)
+      // .attr('fill', (d, i) => {
+      //   return isUpdated ? COLOR(i) : COLOR(i);
+      // });
+      //----------end: many dimensions
 
       //--------------------begin "on click"
       // const opacityValue = 0.5;
