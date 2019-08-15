@@ -19,16 +19,9 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
   useEffect(() => {
     const handleResize = () => {
       setWidthWindow(window.innerWidth);
+      setHeightWindow(responsiveHeight());
       setIsUpdated(true);
     };
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  });
-
-  useEffect(() => {
-    const handleResize = () => setHeightWindow(responsiveHeight());
     window.addEventListener('resize', handleResize);
     return () => {
       window.removeEventListener('resize', handleResize);
