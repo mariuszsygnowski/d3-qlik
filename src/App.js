@@ -55,15 +55,17 @@ const App = () => {
 
           //check if I get any data
           if (dataFromReply[0]) {
-            const newData = reply.qHyperCube.qDataPages[0].qMatrix
+            const newData = dataFromReply
+
+              //remove empty values with 'NaN'
               .filter(e => e[0].qNum !== 'NaN')
               .map(e => {
                 let arrOfqNumsValues = [];
 
                 //at index = 0 is dimension and from index 1 I can find measures
                 for (let index = 1; index < e.length; index++) {
-                  const element = e[index].qNum;
-                  arrOfqNumsValues.push(element);
+                  const qNumVal = e[index].qNum;
+                  arrOfqNumsValues.push(qNumVal);
                 }
                 const qNumsObjects = {qNums: arrOfqNumsValues};
                 const outputObj = Object.assign({}, {qElemNumber: e[0].qElemNumber, qText: e[0].qText}, qNumsObjects);
