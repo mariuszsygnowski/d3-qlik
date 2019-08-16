@@ -53,7 +53,6 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       .attr('height', heightWindow);
 
     const createChart = () => {
-      // console.log(`values:`, values);
       console.log(`data:`, data);
       const allValuesYArray = data.map(e => e[0].qNums);
       console.log(`allValuesYArray:`, allValuesYArray);
