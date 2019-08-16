@@ -58,16 +58,23 @@ const App = () => {
             const newData = reply.qHyperCube.qDataPages[0].qMatrix
               .filter(e => e[0].qNum !== 'NaN')
               .map(e => {
-                let arr = [];
+                let arrOfqNumsValues = [];
 
                 //at index = 0 is dimension and from index 1 I can find measures
                 for (let index = 1; index < e.length; index++) {
                   const element = e[index].qNum;
-                  arr.push(element);
+                  arrOfqNumsValues.push(element);
                 }
-                const qNumsObjects = {qNums: arr};
-                const outputObj = Object.assign({}, {qText: e[0].qText, qElemNumber: e[0].qElemNumber}, qNumsObjects);
+                const qNumsObjects = {qNums: arrOfqNumsValues};
+                const outputObj = Object.assign({}, {qElemNumber: e[0].qElemNumber, qText: e[0].qText}, qNumsObjects);
                 return [outputObj];
+
+                //example of outputObj:
+                // {
+                //   qElemNumber: 13,
+                //   qText: 'Jan-2013',
+                //   qNums: (2)[(939.5828045388848, 539200)]
+                // }
               });
 
             setDataCube(newData);
