@@ -51,16 +51,28 @@ const App = () => {
       setApp(qlikObjects.app);
       if (app) {
         app.createCube(dataCreateCube, reply => {
-          // console.log(`reply.qHyperCube.qDataPages:`, reply);
-          const newDataCube1 = reply.qHyperCube.qDataPages[0].qMatrix
-            .filter(e => e[0].qNum !== 'NaN')
-            .map(e => [{qText: e[0].qText, qNum: e[1].qNum, qElemNumber: e[0].qElemNumber}]);
-          const newDataCube2 = reply.qHyperCube.qDataPages[0].qMatrix
-            .filter(e => e[0].qNum !== 'NaN')
-            .map(e => [{qText: e[0].qText, qNum: e[2].qNum, qElemNumber: e[0].qElemNumber}]);
-          const newDataCube = {firstValue: newDataCube2, secondValue: newDataCube1};
-          setDataCube(newDataCube);
-          setIsCreateCubeDone(true);
+          const dataFromReply = reply.qHyperCube.qDataPages[0].qMatrix;
+
+          //check if I get any data
+          if (dataFromReply[0]) {
+            const newData = reply.qHyperCube.qDataPages[0].qMatrix
+              .filter(e => e[0].qNum !== 'NaN')
+              .map(e => {
+                let arr = [];
+
+                //at index = 0 is dimension and from index 1 I can find measures
+                for (let index = 1; index < e.length; index++) {
+                  const element = e[index].qNum;
+                  arr.push(element);
+                }
+                const qNumsObjects = {qNums: arr};
+                const outputObj = Object.assign({}, {qText: e[0].qText, qElemNumber: e[0].qElemNumber}, qNumsObjects);
+                return [outputObj];
+              });
+
+            setDataCube(newData);
+            setIsCreateCubeDone(true);
+          }
         });
         app.createList(dataCreateList, reply => {
           const arrayWithData = [...reply.qListObject.qDataPages[0].qMatrix];

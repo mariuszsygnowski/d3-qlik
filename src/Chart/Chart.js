@@ -53,10 +53,11 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       .attr('height', heightWindow);
 
     const createChart = () => {
-      console.log(`values:`, values);
+      // console.log(`values:`, values);
       console.log(`data:`, data);
-      const allValuesYArray = data.firstValue.map(e => e[0].qNum);
-      const allValuesXArray = data.firstValue.map(e => e[0].qText);
+      const allValuesYArray = data.map(e => e[0].qNums);
+      console.log(`allValuesYArray:`, allValuesYArray);
+      // const allValuesXArray = data.firstValue.map(e => e[0].qText);
 
       const COLOR = d3
         .scaleSequential()
@@ -89,9 +90,9 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       const colors = ['red', 'blue', 'green'];
 
       Object.entries(data).forEach(([key, val], index) => {
-        console.log(`key:`, key);
-        console.log(`val:`, val);
-        console.log(`index:`, index);
+        // console.log(`key:`, key);
+        // console.log(`val:`, val);
+        // console.log(`index:`, index);
 
         const allRectsInCurrentIteration = rectGroup.selectAll(`rect.${key}`).data(val);
 
@@ -115,6 +116,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
           .attr('fill', (d, i) => {
             return colors[index];
           });
+
         allRectsInCurrentIteration.exit().remove();
       });
       // const allRectsF = rectGroup.selectAll('rect.firstValue').data(data.firstValue);
