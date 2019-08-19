@@ -23,12 +23,12 @@ const dataCreateCube = {
   qMeasures: [
     {
       qDef: {
-        qDef: 'avg([Sales Amount])'
+        qDef: 'max([Sales Amount])'
       }
     },
     {
       qDef: {
-        qDef: 'max([Sales Amount])'
+        qDef: 'count(distinct Customer)'
       }
     }
   ],

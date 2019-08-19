@@ -3,6 +3,7 @@ import {} from './CurrentSelectionTab';
 import React, {useState, useEffect, useRef} from 'react';
 import * as d3 from 'd3';
 import './Chart.scss';
+import {numToWords} from './numToWords';
 import {values} from './Values';
 // import CurrentSelectionTab from './CurrentSelectionTab';
 
@@ -53,10 +54,24 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       .attr('height', heightWindow);
 
     const createChart = () => {
-      console.log(`data:`, data);
       const allValuesYArray = data.map(e => e[0].qNums);
-      console.log(`allValuesYArray:`, allValuesYArray);
-      // const allValuesXArray = data.firstValue.map(e => e[0].qText);
+      let arrayForAllValuesFromEachDimension = [];
+
+      const numberOfMeasures = allValuesYArray[0].length;
+      for (let index = 0; index < numberOfMeasures; index++) {
+        const valuesFromSingleDimension = allValuesYArray.map(e => e[index]);
+        arrayForAllValuesFromEachDimension.push(valuesFromSingleDimension);
+      }
+
+      let maxValueFromArray = 0;
+      arrayForAllValuesFromEachDimension.forEach(e => {
+        let maxVal = d3.max(e);
+        if (maxVal > maxValueFromArray) {
+          maxValueFromArray = maxVal;
+        }
+      });
+
+      const allValuesXArray = data.map(e => e[0].qText);
 
       const COLOR = d3
         .scaleSequential()
@@ -71,7 +86,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
 
       const yScale = d3
         .scaleLinear()
-        .domain([d3.max(allValuesYArray) * 1.05, 0]) // input
+        .domain([maxValueFromArray * 1.03, 0]) // input
         .range([0, innerHeight]); // output
 
       const allGRects = SVG.selectAll('g.allrects').data([
@@ -85,39 +100,82 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .merge(allGRects)
         .attr('transform', `translate(${margin.left},${heightWindow - margin.bottom})`);
 
-      const numberOfDimensions = 3;
       const colors = ['red', 'blue', 'green'];
 
-      Object.entries(data).forEach(([key, val], index) => {
-        // console.log(`key:`, key);
-        // console.log(`val:`, val);
-        // console.log(`index:`, index);
+      const groupGWithMutlipleRects = rectGroup.selectAll(`g.groupRects`).data(data);
 
-        const allRectsInCurrentIteration = rectGroup.selectAll(`rect.${key}`).data(val);
+      groupGWithMutlipleRects
+        .enter()
+        .append('g')
+        .attr('class', (d, i) => {
+          return `groupRects`;
+        })
+        .merge(groupGWithMutlipleRects)
+        .transition(t)
+        .attr('transform', d => `translate(${xScale(d[0].qText)},${0})`);
 
-        allRectsInCurrentIteration
-          .enter()
-          .append('rect')
-          .attr('class', `${key}`)
-          .merge(allRectsInCurrentIteration)
-          .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
-          .transition(t)
-          .attr('y', d => margin.top + yScale(d[0].qNum))
-          .attr('x', (d, i) => {
-            return xScale(d[0].qText);
-          })
-          .attr('width', (d, i) => {
-            return xScale.bandwidth();
-          })
-          .attr('height', function(d) {
-            return innerHeight - yScale(d[0].qNum);
-          })
-          .attr('fill', (d, i) => {
-            return colors[index];
-          });
+      groupGWithMutlipleRects.exit().remove();
 
-        allRectsInCurrentIteration.exit().remove();
-      });
+      const allRectsInGroupG = rectGroup
+        .selectAll(`g.groupRects`)
+        .selectAll('rect')
+        .data(data => data[0].qNums);
+
+      const widthOfSingleChart = xScale.bandwidth() / numberOfMeasures;
+
+      allRectsInGroupG
+        .enter()
+        .append('rect')
+        .merge(allRectsInGroupG)
+        .attr('y', (d, i) => {
+          return yScale(d) - innerHeight;
+        })
+        .attr('x', (d, i) => {
+          return widthOfSingleChart * i;
+        })
+        .attr('height', function(d, i) {
+          return innerHeight - yScale(d);
+        })
+        .attr('width', (d, i) => {
+          return widthOfSingleChart;
+        })
+        .attr('fill', (d, i) => {
+          return colors[i];
+        });
+
+      allRectsInGroupG.exit().remove();
+
+      // .attr('x', (d, i) => {
+      //   return xScale(d.qText);
+      // })
+      // .attr('width', (d, i) => {
+      //   return xScale.bandwidth();
+      // })
+      // .attr('height', function(d) {
+      //   return innerHeight - yScale(d.qNums[key]);
+      // });
+
+      //I can't create class with number (even is if string)
+      //so I change number to string word
+
+      // .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
+      // .transition(t)
+      // .attr('y', d => {
+      //   console.log(`d.qNums[key]:`, d.qNums[key]);
+      //   return margin.top + yScale(d.qNums[key]);
+      // })
+      // .attr('x', (d, i) => {
+      //   return xScale(d.qText);
+      // })
+      // .attr('width', (d, i) => {
+      //   return xScale.bandwidth();
+      // })
+      // .attr('height', function(d) {
+      //   return innerHeight - yScale(d.qNums[key]);
+      // })
+      // .attr('fill', (d, i) => {
+      //   return colors[index];
+      // });
       // const allRectsF = rectGroup.selectAll('rect.firstValue').data(data.firstValue);
 
       // allRectsF
