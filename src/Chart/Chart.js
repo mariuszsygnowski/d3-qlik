@@ -88,19 +88,23 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .domain([d3.max(arrayForAllValuesFromEachDimension[0]) * 1.03, 0]) // input
         .range([0, innerHeight]); // output
 
+      //--------------------begin "create one single g"
       const allGRects = SVG.selectAll('g.allrects').data([
         'create only one element g so in this array is only one element'
       ]);
-      const rectGroup = allGRects
+      allGRects
         .enter()
         .append('g')
         .attr('class', 'allrects')
         .merge(allGRects)
+        .transition(t)
         .attr('transform', `translate(${margin.left},${heightWindow - margin.bottom})`);
       allGRects.exit().remove();
+      //--------------------end "create one single g"
 
+      //--------------------begin "inside of g with class allrects, create g for each dimension"
       const colors = ['red', 'LIME', 'blue', 'DARKSALMON'];
-      const groupGWithMutlipleRects = rectGroup.selectAll(`g.groupRects`).data(data);
+      const groupGWithMutlipleRects = allGRects.selectAll(`.groupRects`).data(data);
       groupGWithMutlipleRects
         .enter()
         .append('g')
@@ -111,16 +115,17 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .transition(t)
         .attr('transform', d => `translate(${xScale(d[0].qText)},${0})`);
       groupGWithMutlipleRects.exit().remove();
+      //--------------------end "inside of g with class allrects, create g for each dimension"
 
+      //--------------------begin "inside g for each dimension, create multiple rect for each measure"
       const widthOfSingleChart = xScale.bandwidth() / numberOfMeasures;
-      const allRectsInGroupG = rectGroup
-        .selectAll(`g.groupRects`)
-        .selectAll('rect')
-        .data(data => data[0].qNums);
+
+      const allRectsInGroupG = groupGWithMutlipleRects.selectAll('rect').data(data => data[0].qNums);
       allRectsInGroupG
         .enter()
         .append('rect')
         .merge(allRectsInGroupG)
+        .transition(t)
         .attr('y', (d, i) => {
           yScale = d3
             .scaleLinear()
@@ -145,6 +150,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
           return colors[i];
         });
       allRectsInGroupG.exit().remove();
+      //--------------------end "inside g for each dimension, create multiple rect for each measure"
 
       //--------------------begin "on click"
       // const opacityValue = 0.5;
@@ -321,7 +327,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       }
     };
     createChart();
-  }, [data.firstValue, widthWindow, heightWindow, isUpdated, selectedValuesArray]);
+  }, [data, widthWindow, heightWindow, isUpdated, selectedValuesArray]);
 
   //--------------------beginning: stuff when working on real data
   // const confirmSelectionHandleClick = () => {
