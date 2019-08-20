@@ -37,6 +37,7 @@ const App = () => {
   const [isCreateListDone, setIsCreateListDone] = useState(false);
   const [selectedCubeValues, setSelectedCubeValues] = useState([]);
   const [app, setApp] = useState(false);
+  const [obj, setObj] = useState(false);
 
   // useEffect(() => {
   //   qlikApp(config).then(q => {
@@ -47,10 +48,31 @@ const App = () => {
 
   useEffect(() => {
     //--------------beginning: version 1 when working on real data
+    const qMeasures = [
+      {
+        qDef: {
+          qDef: 'max([Sales Amount])'
+        }
+      },
+      {
+        qDef: {
+          qDef: 'count(distinct Customer)'
+        }
+      },
+      {
+        qDef: {
+          qDef: 'avg([Sales Amount])'
+        }
+      }
+    ];
+
+    const objCreateCube = Object.assign({}, obj, {qMeasures: qMeasures});
+
+    setObj(objCreateCube);
     qlikApp(config).then(qlikObjects => {
       setApp(qlikObjects.app);
-      if (app) {
-        app.createCube(dataCreateCube, reply => {
+      if (app && obj) {
+        app.createCube(dataCreateCube(objCreateCube), reply => {
           const dataFromReply = reply.qHyperCube.qDataPages[0].qMatrix;
 
           //check if I get any data
@@ -128,10 +150,33 @@ const App = () => {
   // };
   //----------------end: used in Qlik
 
+  const cli = () => {
+    const qMeasures = [
+      {
+        qDef: {
+          qDef: 'max([Sales Amount])'
+        }
+      },
+      {
+        qDef: {
+          qDef: 'avg([Sales Amount])'
+        }
+      },
+      {
+        qDef: {
+          qDef: 'count(distinct Customer)'
+        }
+      }
+    ];
+
+    const objCreateCube = Object.assign({}, obj, {qMeasures: qMeasures});
+
+    setObj(objCreateCube);
+  };
+
   return (
     <div className='App'>
       {/* <div id='nav' /> */}
-
       {isCreateCubeDone && isCreateListDone ? (
         <>
           {/* <nav id='nav' /> */}

@@ -40,11 +40,11 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
   const ref = useRef(null);
   const t = d3
     .transition()
-    .duration(350)
+    .duration(250)
     .ease(d3.easeLinear);
 
   useEffect(() => {
-    const margin = {top: 10, right: 30, bottom: 50, left: 80};
+    const margin = {top: 10, right: 80, bottom: 50, left: 80};
     const innerWidth = widthWindow - margin.left - margin.right;
     const innerHeight = heightWindow - margin.top - margin.bottom;
 
@@ -54,6 +54,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       .attr('height', heightWindow);
 
     const createChart = () => {
+      const allValuesXArray = data.map(e => e[0].qText);
       const allValuesYArray = data.map(e => e[0].qNums);
       let arrayForAllValuesFromEachDimension = [];
 
@@ -71,8 +72,6 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         }
       });
 
-      const allValuesXArray = data.map(e => e[0].qText);
-
       const COLOR = d3
         .scaleSequential()
         .domain([0, dataNamesX.length])
@@ -84,26 +83,24 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .range([0, innerWidth])
         .padding(0.1); // output
 
-      const yScale = d3
+      let yScale = d3
         .scaleLinear()
-        .domain([maxValueFromArray * 1.03, 0]) // input
+        .domain([d3.max(arrayForAllValuesFromEachDimension[0]) * 1.03, 0]) // input
         .range([0, innerHeight]); // output
 
       const allGRects = SVG.selectAll('g.allrects').data([
         'create only one element g so in this array is only one element'
       ]);
-
       const rectGroup = allGRects
         .enter()
         .append('g')
         .attr('class', 'allrects')
         .merge(allGRects)
         .attr('transform', `translate(${margin.left},${heightWindow - margin.bottom})`);
+      allGRects.exit().remove();
 
-      const colors = ['red', 'blue', 'green'];
-
+      const colors = ['red', 'LIME', 'blue', 'DARKSALMON'];
       const groupGWithMutlipleRects = rectGroup.selectAll(`g.groupRects`).data(data);
-
       groupGWithMutlipleRects
         .enter()
         .append('g')
@@ -113,27 +110,32 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .merge(groupGWithMutlipleRects)
         .transition(t)
         .attr('transform', d => `translate(${xScale(d[0].qText)},${0})`);
-
       groupGWithMutlipleRects.exit().remove();
 
+      const widthOfSingleChart = xScale.bandwidth() / numberOfMeasures;
       const allRectsInGroupG = rectGroup
         .selectAll(`g.groupRects`)
         .selectAll('rect')
         .data(data => data[0].qNums);
-
-      const widthOfSingleChart = xScale.bandwidth() / numberOfMeasures;
-
       allRectsInGroupG
         .enter()
         .append('rect')
         .merge(allRectsInGroupG)
         .attr('y', (d, i) => {
+          yScale = d3
+            .scaleLinear()
+            .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
+            .range([0, innerHeight]);
           return yScale(d) - innerHeight;
         })
         .attr('x', (d, i) => {
           return widthOfSingleChart * i;
         })
         .attr('height', function(d, i) {
+          yScale = d3
+            .scaleLinear()
+            .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
+            .range([0, innerHeight]);
           return innerHeight - yScale(d);
         })
         .attr('width', (d, i) => {
@@ -142,131 +144,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .attr('fill', (d, i) => {
           return colors[i];
         });
-
       allRectsInGroupG.exit().remove();
-
-      // .attr('x', (d, i) => {
-      //   return xScale(d.qText);
-      // })
-      // .attr('width', (d, i) => {
-      //   return xScale.bandwidth();
-      // })
-      // .attr('height', function(d) {
-      //   return innerHeight - yScale(d.qNums[key]);
-      // });
-
-      //I can't create class with number (even is if string)
-      //so I change number to string word
-
-      // .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
-      // .transition(t)
-      // .attr('y', d => {
-      //   console.log(`d.qNums[key]:`, d.qNums[key]);
-      //   return margin.top + yScale(d.qNums[key]);
-      // })
-      // .attr('x', (d, i) => {
-      //   return xScale(d.qText);
-      // })
-      // .attr('width', (d, i) => {
-      //   return xScale.bandwidth();
-      // })
-      // .attr('height', function(d) {
-      //   return innerHeight - yScale(d.qNums[key]);
-      // })
-      // .attr('fill', (d, i) => {
-      //   return colors[index];
-      // });
-      // const allRectsF = rectGroup.selectAll('rect.firstValue').data(data.firstValue);
-
-      // allRectsF
-      //   .enter()
-      //   .append('rect')
-      //   .attr('class', 'firstValue')
-      //   .merge(allRectsF)
-      //   .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
-      //   .transition(t)
-      //   .attr('y', d => margin.top + yScale(d[0].qNum))
-      //   .attr('x', (d, i) => {
-      //     return xScale(d[0].qText);
-      //   })
-      //   .attr('width', (d, i) => {
-      //     return xScale.bandwidth();
-      //   })
-      //   .attr('height', function(d) {
-      //     return innerHeight - yScale(d[0].qNum);
-      //   })
-      //   .attr('fill', (d, i) => {
-      //     return COLOR(i);
-      //   });
-
-      // const allRectsS = rectGroup.selectAll('rect.secondValue').data(data.secondValue);
-
-      // allRectsS
-      //   .enter()
-      //   .append('rect')
-      //   .attr('class', 'secondValue')
-      //   .merge(allRectsS)
-      //   .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
-      //   .transition(t)
-      //   .attr('y', d => margin.top + yScale(d[0].qNum))
-      //   .attr('x', (d, i) => {
-      //     return xScale(d[0].qText);
-      //   })
-      //   .attr('width', (d, i) => {
-      //     return xScale.bandwidth();
-      //   })
-      //   .attr('height', function(d) {
-      //     return innerHeight - yScale(d[0].qNum);
-      //   })
-      //   .attr('fill', (d, i) => {
-      //     return 'black';
-      //   });
-
-      //--------------------beginning: many dimensions
-      // allRects
-      //   .enter()
-      //   .append('rect')
-      //   .merge(allRects)
-      //   .attr('transform', `translate(${0},${-heightWindow + margin.bottom - 1})`)
-      //   .transition(t)
-      //   .attr('y', d => margin.top + yScale(d[0].qNum))
-      //   .attr('x', (d, i) => {
-      //     console.log(`xScale(d[0].qText):`, xScale(d[0].qText));
-      //     console.log(`xScale.bandwidth():`, xScale.bandwidth());
-      //     return xScale(d[0].qText) + xScale.bandwidth() / numberOfDimensions;
-      //   })
-      //   .attr('width', (d, i) => {
-      //     return xScale.bandwidth() / numberOfDimensions;
-      //   })
-      //   .attr('height', function(d) {
-      //     return innerHeight - yScale(d[0].qNum);
-      //   })
-      //   .attr('fill', (d, i) => {
-      //     return isUpdated ? COLOR(i) : COLOR(i);
-      //   });
-
-      // const allRects = rectGroup.selectAll('rect').data(data.firstValue);
-      // console.log(`allRects:`, allRects);
-      // allGRects
-      //   .enter()
-      //   .append('rect')
-      //   .merge(allRects);
-      // .transition(t)
-      // .attr('y', d => margin.top + yScale(d[0].qNum))
-      // .attr('x', (d, i) => {
-      //   return xScale(d[0].qText);
-      // })
-      // .attr('width', (d, i) => {
-      //   return xScale.bandwidth();
-      // })
-      // .attr('height', function(d) {
-      //   return innerHeight - yScale(d[0].qNum);
-      // })
-      // .attr('transform', `translate(${margin.left},${-1})`)
-      // .attr('fill', (d, i) => {
-      //   return isUpdated ? COLOR(i) : COLOR(i);
-      // });
-      //--------------------end: many dimensions
 
       //--------------------begin "on click"
       // const opacityValue = 0.5;
@@ -338,6 +216,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       if (widthWindow > 1200) {
         translateAndRotate = 'translate(0,0) rotate(0)';
       }
+
       var allGXaxis = SVG.selectAll('g.xaxis').data(['create only one element g so in this array is only one element']);
 
       allGXaxis
@@ -353,8 +232,6 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
 
       allGXaxis.exit().remove();
 
-      var allGYaxis = SVG.selectAll('g.yaxis').data(['create only one element g so in this array is only one element']);
-
       function yAxisTickFormat(number) {
         return d3
           .format('.2s')(number)
@@ -368,12 +245,23 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
           });
       }
 
-      allGYaxis
+      //--------------------begin: left axis
+      const measureNumberForLeftAxis = 0;
+      var allGYaxisL = SVG.selectAll('g.yaxisl').data([
+        'create only one element g so in this array is only one element'
+      ]);
+
+      yScale = d3
+        .scaleLinear()
+        .domain([d3.max(arrayForAllValuesFromEachDimension[measureNumberForLeftAxis]) * 1.03, 0]) // input
+        .range([0, innerHeight]);
+
+      allGYaxisL
         .enter()
         .append('g')
-        .attr('class', 'yaxis')
-        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-        .merge(allGYaxis)
+        .attr('class', 'yaxisl')
+        .attr('transform', `translate(${margin.left},${margin.top})`)
+        .merge(allGYaxisL)
         .transition(t)
         .call(
           d3
@@ -382,7 +270,55 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
             .tickFormat(yAxisTickFormat)
         );
 
-      allGYaxis.exit().remove();
+      allGYaxisL
+        .enter()
+        .selectAll('g.yaxisl')
+        .selectAll('text')
+        .attr('fill', colors[measureNumberForLeftAxis])
+        .style('font-size', '1.5em')
+        .style('font-weight', 900);
+
+      allGYaxisL.exit().remove();
+      //--------------------end: left axis
+
+      //--------------------begin: right axis
+      if (numberOfMeasures > 1) {
+        const measureNumberForRightAxis = 1;
+
+        var allGYaxisR = SVG.selectAll('g.yaxisr').data([
+          'create only one element g so in this array is only one element'
+        ]);
+
+        yScale = d3
+          .scaleLinear()
+          .domain([d3.max(arrayForAllValuesFromEachDimension[measureNumberForRightAxis]) * 1.03, 0]) // input
+          .range([0, innerHeight]);
+
+        allGYaxisR
+          .enter()
+          .append('g')
+          .attr('class', 'yaxisr')
+          .merge(allGYaxisR)
+          .transition(t)
+          .attr('transform', `translate(${innerWidth + margin.left},${margin.top})`)
+          .call(
+            d3
+              .axisRight(yScale)
+              .ticks(heightWindow < 400 ? data.length / 3 : data.length)
+              .tickFormat(yAxisTickFormat)
+          );
+
+        allGYaxisR
+          .enter()
+          .selectAll('g.yaxisr')
+          .selectAll('text')
+          .attr('fill', colors[measureNumberForRightAxis])
+          .style('font-size', '1.5em')
+          .style('font-weight', 900);
+
+        allGYaxisR.exit().remove();
+        //--------------------end: right axis
+      }
     };
     createChart();
   }, [data.firstValue, widthWindow, heightWindow, isUpdated, selectedValuesArray]);

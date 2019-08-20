@@ -1,45 +1,36 @@
-const dataCreateCube = {
-  qDimensions: [
-    {
-      qDef: {
-        qFieldDefs: ['YearMonth'],
-        qSortCriterias: [
-          {
-            qSortByState: 0,
-            qSortByFrequency: 0,
-            qSortByNumeric: 1,
-            qSortByAscii: 0,
-            qSortByLoadOrder: 1,
-            qSortByExpression: 0,
-            qExpression: {
-              qv: ''
-            },
-            qSortByGreyness: 0
-          }
-        ]
+const dataCreateCube = obj => {
+  return {
+    qDimensions: [
+      {
+        qDef: {
+          qFieldDefs: ['YearMonth'],
+          qSortCriterias: [
+            {
+              qSortByState: 0,
+              qSortByFrequency: 0,
+              qSortByNumeric: 1,
+              qSortByAscii: 0,
+              qSortByLoadOrder: 1,
+              qSortByExpression: 0,
+              qExpression: {
+                qv: ''
+              },
+              qSortByGreyness: 0
+            }
+          ]
+        }
       }
-    }
-  ],
-  qMeasures: [
-    {
-      qDef: {
-        qDef: 'max([Sales Amount])'
+    ],
+    qMeasures: obj.qMeasures,
+    qInitialDataFetch: [
+      {
+        qTop: 0,
+        qLeft: 0,
+        qHeight: 500,
+        qWidth: 17
       }
-    },
-    {
-      qDef: {
-        qDef: 'count(distinct Customer)'
-      }
-    }
-  ],
-  qInitialDataFetch: [
-    {
-      qTop: 0,
-      qLeft: 0,
-      qHeight: 500,
-      qWidth: 17
-    }
-  ]
+    ]
+  };
 };
 
 const dataCreateList = {
