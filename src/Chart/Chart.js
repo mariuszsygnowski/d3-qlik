@@ -66,7 +66,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
 
       let maxValueFromArray = 0;
       arrayForAllValuesFromEachDimension.forEach(e => {
-        let maxVal = d3.max(e);
+        const maxVal = d3.max(e);
         if (maxVal > maxValueFromArray) {
           maxValueFromArray = maxVal;
         }
@@ -274,11 +274,8 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
             .axisLeft(yScale)
             .ticks(heightWindow < 400 ? data.length / 3 : data.length)
             .tickFormat(yAxisTickFormat)
-        );
-
-      allGYaxisL
-        .enter()
-        .selectAll('g.yaxisl')
+        )
+        .transition(t)
         .selectAll('text')
         .attr('fill', colors[measureNumberForLeftAxis])
         .style('font-size', '1.5em')
@@ -312,12 +309,9 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
               .axisRight(yScale)
               .ticks(heightWindow < 400 ? data.length / 3 : data.length)
               .tickFormat(yAxisTickFormat)
-          );
-
-        allGYaxisR
-          .enter()
-          .selectAll('g.yaxisr')
+          )
           .selectAll('text')
+          .transition(t)
           .attr('fill', colors[measureNumberForRightAxis])
           .style('font-size', '1.5em')
           .style('font-weight', 900);

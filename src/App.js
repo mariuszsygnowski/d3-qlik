@@ -46,9 +46,42 @@ const App = () => {
   //   });
   // });
 
-  useEffect(() => {
-    //--------------beginning: version 1 when working on real data
-    const qMeasures = [
+  let qMeasures = [
+    {
+      qDef: {
+        qDef: 'max([Sales Amount])'
+      }
+    },
+    {
+      qDef: {
+        qDef: 'count(distinct Customer)'
+      }
+    },
+    {
+      qDef: {
+        qDef: 'avg([Sales Amount])'
+      }
+    }
+  ];
+
+  const change = () => {
+    qMeasures = [
+      {
+        qDef: {
+          qDef: 'count(distinct Customer)'
+        }
+      },
+      {
+        qDef: {
+          qDef: 'avg([Sales Amount])'
+        }
+      }
+    ];
+    createQlik();
+  };
+
+  const change1 = () => {
+    qMeasures = [
       {
         qDef: {
           qDef: 'max([Sales Amount])'
@@ -65,8 +98,16 @@ const App = () => {
         }
       }
     ];
+    createQlik();
+  };
+  useEffect(() => {
+    createQlik();
+  }, [isCreateCubeDone, isCreateListDone, app]);
 
-    const objCreateCube = Object.assign({}, obj, {qMeasures: qMeasures});
+  const createQlik = () => {
+    //--------------beginning: version 1 when working on real data
+
+    const objCreateCube = Object.assign({}, obj, {qMeasures});
 
     setObj(objCreateCube);
     qlikApp(config).then(qlikObjects => {
@@ -134,7 +175,7 @@ const App = () => {
     // setIsCreateCubeDone(true);
     // setIsCreateListDone(true);
     //--------------end: version 2 when working on static data
-  }, [isCreateCubeDone, isCreateListDone, app]);
+  };
 
   //----------------beginning: used in Qlik
   // const sendNewSelections = values => {
@@ -176,6 +217,8 @@ const App = () => {
 
   return (
     <div className='App'>
+      <button onClick={change}>click</button>
+      <button onClick={change1}>click1</button>
       {/* <div id='nav' /> */}
       {isCreateCubeDone && isCreateListDone ? (
         <>
