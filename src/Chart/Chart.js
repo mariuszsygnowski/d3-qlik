@@ -64,14 +64,6 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         arrayForAllValuesFromEachDimension.push(valuesFromSingleDimension);
       }
 
-      let maxValueFromArray = 0;
-      arrayForAllValuesFromEachDimension.forEach(e => {
-        const maxVal = d3.max(e);
-        if (maxVal > maxValueFromArray) {
-          maxValueFromArray = maxVal;
-        }
-      });
-
       const COLOR = d3
         .scaleSequential()
         .domain([0, dataNamesX.length])
@@ -83,10 +75,12 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .range([0, innerWidth])
         .padding(0.1); // output
 
-      let yScale = d3
-        .scaleLinear()
-        .domain([d3.max(arrayForAllValuesFromEachDimension[0]) * 1.03, 0]) // input
-        .range([0, innerHeight]); // output
+      const allYScalesArray = allValuesYArray[0].map((e, i) =>
+        d3
+          .scaleLinear()
+          .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
+          .range([0, innerHeight])
+      );
 
       //--------------------begin "create one single g, name: allGRects"
       const allGRects = SVG.selectAll('g.allrects').data([
@@ -127,21 +121,15 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .merge(allRectsInGroupG)
         .transition(t)
         .attr('y', (d, i) => {
-          yScale = d3
-            .scaleLinear()
-            .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
-            .range([0, innerHeight]);
-          return yScale(d) - innerHeight;
+          const currentYScale = allYScalesArray[i];
+          return currentYScale(d) - innerHeight;
         })
         .attr('x', (d, i) => {
           return widthOfSingleChart * i;
         })
         .attr('height', function(d, i) {
-          yScale = d3
-            .scaleLinear()
-            .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
-            .range([0, innerHeight]);
-          return innerHeight - yScale(d);
+          const currentYScale = allYScalesArray[i];
+          return innerHeight - currentYScale(d);
         })
         .attr('width', (d, i) => {
           return widthOfSingleChart;
@@ -257,11 +245,6 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         'create only one element g so in this array is only one element'
       ]);
 
-      yScale = d3
-        .scaleLinear()
-        .domain([d3.max(arrayForAllValuesFromEachDimension[measureNumberForLeftAxis]) * 1.03, 0]) // input
-        .range([0, innerHeight]);
-
       allGYaxisL
         .enter()
         .append('g')
@@ -271,7 +254,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .transition(t)
         .call(
           d3
-            .axisLeft(yScale)
+            .axisLeft(allYScalesArray[measureNumberForLeftAxis])
             .ticks(heightWindow < 400 ? data.length / 3 : data.length)
             .tickFormat(yAxisTickFormat)
         )
@@ -292,11 +275,6 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
           'create only one element g so in this array is only one element'
         ]);
 
-        yScale = d3
-          .scaleLinear()
-          .domain([d3.max(arrayForAllValuesFromEachDimension[measureNumberForRightAxis]) * 1.03, 0]) // input
-          .range([0, innerHeight]);
-
         allGYaxisR
           .enter()
           .append('g')
@@ -306,7 +284,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
           .attr('transform', `translate(${innerWidth + margin.left},${margin.top})`)
           .call(
             d3
-              .axisRight(yScale)
+              .axisRight(allYScalesArray[measureNumberForRightAxis])
               .ticks(heightWindow < 400 ? data.length / 3 : data.length)
               .tickFormat(yAxisTickFormat)
           )
