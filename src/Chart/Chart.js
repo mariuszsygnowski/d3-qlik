@@ -43,7 +43,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
   const ref = useRef(null);
   const t = d3
     .transition()
-    .duration(250)
+    .duration(950)
     .ease(d3.easeLinear);
 
   useEffect(() => {
@@ -83,6 +83,12 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
           .scaleLinear()
           .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
           .range(isHorizontal ? [0, innerHeight] : [0, innerWidth])
+      );
+      const allYScalesArrayHorizontal = allValuesYArray[0].map((e, i) =>
+        d3
+          .scaleLinear()
+          .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
+          .range(isHorizontal ? [0, 0] : [innerWidth, 0])
       );
 
       //--------------------begin "create one single g, name: allGRects"
@@ -292,11 +298,10 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
                 .ticks(heightWindow < 400 ? data.length / 3 : data.length)
                 .tickFormat(yAxisTickFormat)
             : d3
-                .axisTop(allYScalesArray[measureNumberForLeftAxis])
+                .axisTop(allYScalesArrayHorizontal[measureNumberForLeftAxis])
                 .ticks(heightWindow < 400 ? data.length / 3 : data.length)
                 .tickFormat(yAxisTickFormat)
         )
-        // .transition(t)
         .selectAll('text')
         .attr('transform', isHorizontal ? null : translateAndRotateLeftAxis)
         .attr('fill', colors[measureNumberForLeftAxis])
@@ -333,12 +338,11 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
                   .ticks(heightWindow < 400 ? data.length / 3 : data.length)
                   .tickFormat(yAxisTickFormat)
               : d3
-                  .axisBottom(allYScalesArray[measureNumberForRightAxis])
+                  .axisBottom(allYScalesArrayHorizontal[measureNumberForRightAxis])
                   .ticks(heightWindow < 400 ? data.length / 3 : data.length)
                   .tickFormat(yAxisTickFormat)
           )
           .selectAll('text')
-          .transition(t)
           .attr('fill', colors[measureNumberForRightAxis])
           .style('font-size', '1.5em')
           .style('font-weight', 900);
@@ -348,7 +352,6 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       } else {
         SVG.selectAll('g.yaxisr').remove();
       }
-      console.log(`isHorizontal:`, isHorizontal);
     };
     createChart();
   }, [data, widthWindow, heightWindow, isUpdated, selectedValuesArray, isHorizontal]);
