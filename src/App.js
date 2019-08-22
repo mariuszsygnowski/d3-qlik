@@ -4,7 +4,6 @@ import './App.scss';
 import * as d3 from 'd3';
 
 import qlikApp from './Chart/qlikApp';
-import qqlikApp from './Chart/qqlikApp';
 import {dataCreateList, dataCreateCube} from './Chart/Data';
 import Chart from './Chart/Chart';
 
@@ -95,6 +94,16 @@ const App = () => {
       {
         qDef: {
           qDef: 'avg([Sales Amount])'
+        }
+      }
+    ];
+    createQlik();
+  };
+  const change2 = () => {
+    qMeasures = [
+      {
+        qDef: {
+          qDef: 'count(distinct Customer)'
         }
       }
     ];
@@ -191,34 +200,11 @@ const App = () => {
   // };
   //----------------end: used in Qlik
 
-  const cli = () => {
-    const qMeasures = [
-      {
-        qDef: {
-          qDef: 'max([Sales Amount])'
-        }
-      },
-      {
-        qDef: {
-          qDef: 'avg([Sales Amount])'
-        }
-      },
-      {
-        qDef: {
-          qDef: 'count(distinct Customer)'
-        }
-      }
-    ];
-
-    const objCreateCube = Object.assign({}, obj, {qMeasures: qMeasures});
-
-    setObj(objCreateCube);
-  };
-
   return (
     <div className='App'>
       <button onClick={change}>click</button>
       <button onClick={change1}>click1</button>
+      <button onClick={change2}>click2</button>
       {/* <div id='nav' /> */}
       {isCreateCubeDone && isCreateListDone ? (
         <>

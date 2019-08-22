@@ -5,9 +5,12 @@ import * as d3 from 'd3';
 import './Chart.scss';
 import {numToWords} from './numToWords';
 import {values} from './Values';
+
 // import CurrentSelectionTab from './CurrentSelectionTab';
 
 const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
+  const [isHorizontal, setisHorizontal] = useState(true);
+
   const responsiveHeight = () => {
     if (window.innerHeight < 500) {
       return 500 - 75;
@@ -44,7 +47,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
     .ease(d3.easeLinear);
 
   useEffect(() => {
-    const margin = {top: 10, right: 80, bottom: 50, left: 80};
+    const margin = {top: 50, right: 80, bottom: 50, left: 80};
     const innerWidth = widthWindow - margin.left - margin.right;
     const innerHeight = heightWindow - margin.top - margin.bottom;
 
@@ -72,14 +75,14 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       const xScale = d3
         .scaleBand()
         .domain(allValuesXArray) // input
-        .range([0, innerWidth])
+        .range(isHorizontal ? [0, innerWidth] : [0, innerHeight])
         .padding(0.1); // output
 
       const allYScalesArray = allValuesYArray[0].map((e, i) =>
         d3
           .scaleLinear()
           .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
-          .range([0, innerHeight])
+          .range(isHorizontal ? [0, innerHeight] : [0, innerWidth])
       );
 
       //--------------------begin "create one single g, name: allGRects"
@@ -92,7 +95,12 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .attr('class', 'allrects')
         .merge(allGRects)
         .transition(t)
-        .attr('transform', `translate(${margin.left},${heightWindow - margin.bottom})`);
+        .attr(
+          'transform',
+          isHorizontal
+            ? `translate(${margin.left},${heightWindow - margin.bottom})`
+            : `translate(${margin.left},${margin.bottom})rotate(90)`
+        );
       allGRects.exit().remove();
       //--------------------end "create one single g, name: allGRects"
 
@@ -114,6 +122,8 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       //--------------------begin "inside groupGWithMutlipleRects, create multiple rect for each measure, name:allRectsInGroupG"
       const widthOfSingleChart = xScale.bandwidth() / numberOfMeasures;
 
+      console.log(`data:`, data);
+
       const allRectsInGroupG = groupGWithMutlipleRects.selectAll('rect').data(data => data[0].qNums);
       allRectsInGroupG
         .enter()
@@ -122,14 +132,18 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .transition(t)
         .attr('y', (d, i) => {
           const currentYScale = allYScalesArray[i];
-          return currentYScale(d) - innerHeight;
+          return isHorizontal ? currentYScale(d) - innerHeight : currentYScale(d) - innerWidth;
+          // return currentYScale(d) - heightWindow;
         })
         .attr('x', (d, i) => {
+          const currentYScale = allYScalesArray[i];
+          // return isHorizontal ? widthOfSingleChart * i : currentYScale(d);
           return widthOfSingleChart * i;
         })
         .attr('height', function(d, i) {
           const currentYScale = allYScalesArray[i];
-          return innerHeight - currentYScale(d);
+          return isHorizontal ? innerHeight - currentYScale(d) : innerWidth - currentYScale(d);
+          // return heightWindow - currentYScale(d);
         })
         .attr('width', (d, i) => {
           return widthOfSingleChart;
@@ -211,6 +225,18 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         translateAndRotate = 'translate(0,0) rotate(0)';
       }
 
+      let translateAndRotateLeftAxis = 'translate(-15,0) rotate(80)';
+      if (widthWindow > 600) {
+        translateAndRotateLeftAxis = 'translate(-15,0) rotate(60)';
+      }
+      if (widthWindow > 800) {
+        translateAndRotateLeftAxis = 'translate(-15,0) rotate(40)';
+      }
+      if (widthWindow > 1200) {
+        translateAndRotateLeftAxis = 'translate(0,0) rotate(0)';
+      }
+
+      //--------------------begin: bottom axis
       var allGXaxis = SVG.selectAll('g.xaxis').data(['create only one element g so in this array is only one element']);
 
       allGXaxis
@@ -219,16 +245,23 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .attr('class', 'xaxis')
         .merge(allGXaxis)
         .transition(t)
-        .attr('transform', `translate(${margin.left},${heightWindow - margin.bottom})`)
-        .call(d3.axisBottom(xScale))
+        .call(isHorizontal ? d3.axisBottom(xScale) : d3.axisLeft(xScale))
+        .attr(
+          'transform',
+          isHorizontal
+            ? `translate(${margin.left},${heightWindow - margin.bottom})`
+            : `translate(${margin.left},${margin.top})`
+        )
         .selectAll('text')
-        .attr('transform', translateAndRotate);
+        .attr('transform', isHorizontal ? translateAndRotate : 'translate(-25,0) rotate(0)');
 
       allGXaxis.exit().remove();
+      //--------------------end: bottom axis
 
       function yAxisTickFormat(number) {
+        const formatNumber = number === 0 ? '.1s' : '.2s';
         return d3
-          .format('.2s')(number)
+          .format(formatNumber)(number)
           .replace('M', function() {
             if (number < 2000000) return ' Million';
             return ' Millions';
@@ -249,17 +282,23 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .enter()
         .append('g')
         .attr('class', 'yaxisl')
-        .attr('transform', `translate(${margin.left},${margin.top})`)
         .merge(allGYaxisL)
         .transition(t)
+        .attr('transform', `translate(${margin.left},${margin.top})`)
         .call(
-          d3
-            .axisLeft(allYScalesArray[measureNumberForLeftAxis])
-            .ticks(heightWindow < 400 ? data.length / 3 : data.length)
-            .tickFormat(yAxisTickFormat)
+          isHorizontal
+            ? d3
+                .axisLeft(allYScalesArray[measureNumberForLeftAxis])
+                .ticks(heightWindow < 400 ? data.length / 3 : data.length)
+                .tickFormat(yAxisTickFormat)
+            : d3
+                .axisTop(allYScalesArray[measureNumberForLeftAxis])
+                .ticks(heightWindow < 400 ? data.length / 3 : data.length)
+                .tickFormat(yAxisTickFormat)
         )
-        .transition(t)
+        // .transition(t)
         .selectAll('text')
+        .attr('transform', isHorizontal ? null : translateAndRotateLeftAxis)
         .attr('fill', colors[measureNumberForLeftAxis])
         .style('font-size', '1.5em')
         .style('font-weight', 900);
@@ -281,12 +320,22 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
           .attr('class', 'yaxisr')
           .merge(allGYaxisR)
           .transition(t)
-          .attr('transform', `translate(${innerWidth + margin.left},${margin.top})`)
+          .attr(
+            'transform',
+            isHorizontal
+              ? `translate(${innerWidth + margin.left},${margin.top})`
+              : `translate(${margin.left},${heightWindow - margin.bottom})`
+          )
           .call(
-            d3
-              .axisRight(allYScalesArray[measureNumberForRightAxis])
-              .ticks(heightWindow < 400 ? data.length / 3 : data.length)
-              .tickFormat(yAxisTickFormat)
+            isHorizontal
+              ? d3
+                  .axisRight(allYScalesArray[measureNumberForRightAxis])
+                  .ticks(heightWindow < 400 ? data.length / 3 : data.length)
+                  .tickFormat(yAxisTickFormat)
+              : d3
+                  .axisBottom(allYScalesArray[measureNumberForRightAxis])
+                  .ticks(heightWindow < 400 ? data.length / 3 : data.length)
+                  .tickFormat(yAxisTickFormat)
           )
           .selectAll('text')
           .transition(t)
@@ -296,10 +345,13 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
 
         allGYaxisR.exit().remove();
         //--------------------end: right axis
+      } else {
+        SVG.selectAll('g.yaxisr').remove();
       }
+      console.log(`isHorizontal:`, isHorizontal);
     };
     createChart();
-  }, [data, widthWindow, heightWindow, isUpdated, selectedValuesArray]);
+  }, [data, widthWindow, heightWindow, isUpdated, selectedValuesArray, isHorizontal]);
 
   //--------------------beginning: stuff when working on real data
   // const confirmSelectionHandleClick = () => {
@@ -326,8 +378,13 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
   // };
   //--------------------end: stuff when working on real data
 
+  const changeLandscape = e => {
+    isHorizontal ? (e.target.innerHTML = 'click for vertical') : (e.target.innerHTML = 'click for horizontal');
+    setisHorizontal(!isHorizontal);
+  };
   return (
     <div className='chart3'>
+      <button onClick={e => changeLandscape(e)}>click for horizontal</button>
       {/* <div className='navBar'>
         <CurrentSelectionTab
           data.firstValue={data.firstValue}
