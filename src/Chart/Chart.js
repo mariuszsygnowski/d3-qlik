@@ -9,17 +9,23 @@ import {values} from './Values';
 // import CurrentSelectionTab from './CurrentSelectionTab';
 
 const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
-  const [isHorizontal, setisHorizontal] = useState(true);
-
   const responsiveHeight = () => {
     if (window.innerHeight < 500) {
-      return 500 - 75;
+      return 500 - 275;
     } else if (window.innerHeight > 1000) {
-      return 1000 - 75;
+      return 1000 - 275;
     } else {
-      return window.innerHeight - 75;
+      return window.innerHeight - 275;
     }
   };
+
+  const [inSelectionMode, setInSelectionMode] = useState(true);
+  const [selectedValuesArray, setSelectedValuesArray] = useState([]);
+  const [isUpdated, setIsUpdated] = useState(false);
+  const [isHorizontal, setisHorizontal] = useState(true);
+
+  const [widthWindow, setWidthWindow] = useState(window.innerWidth);
+  const [heightWindow, setHeightWindow] = useState(responsiveHeight());
 
   useEffect(() => {
     const handleResize = () => {
@@ -33,17 +39,10 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
     };
   });
 
-  const [inSelectionMode, setInSelectionMode] = useState(true);
-  const [selectedValuesArray, setSelectedValuesArray] = useState([]);
-  const [isUpdated, setIsUpdated] = useState(false);
-
-  const [widthWindow, setWidthWindow] = useState(window.innerWidth);
-  const [heightWindow, setHeightWindow] = useState(responsiveHeight());
-
   const ref = useRef(null);
   const t = d3
     .transition()
-    .duration(950)
+    .duration(250)
     .ease(d3.easeLinear);
 
   useEffect(() => {
@@ -128,8 +127,6 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       //--------------------begin "inside groupGWithMutlipleRects, create multiple rect for each measure, name:allRectsInGroupG"
       const widthOfSingleChart = xScale.bandwidth() / numberOfMeasures;
 
-      console.log(`data:`, data);
-
       const allRectsInGroupG = groupGWithMutlipleRects.selectAll('rect').data(data => data[0].qNums);
       allRectsInGroupG
         .enter()
@@ -139,17 +136,13 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .attr('y', (d, i) => {
           const currentYScale = allYScalesArray[i];
           return isHorizontal ? currentYScale(d) - innerHeight : currentYScale(d) - innerWidth;
-          // return currentYScale(d) - heightWindow;
         })
         .attr('x', (d, i) => {
-          const currentYScale = allYScalesArray[i];
-          // return isHorizontal ? widthOfSingleChart * i : currentYScale(d);
           return widthOfSingleChart * i;
         })
         .attr('height', function(d, i) {
           const currentYScale = allYScalesArray[i];
           return isHorizontal ? innerHeight - currentYScale(d) : innerWidth - currentYScale(d);
-          // return heightWindow - currentYScale(d);
         })
         .attr('width', (d, i) => {
           return widthOfSingleChart;
@@ -259,7 +252,9 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
             : `translate(${margin.left},${margin.top})`
         )
         .selectAll('text')
-        .attr('transform', isHorizontal ? translateAndRotate : 'translate(-25,0) rotate(0)');
+        .attr('transform', isHorizontal ? translateAndRotate : 'translate(-25,0) rotate(0)')
+        .selectAll('line')
+        .attr('x2', 0);
 
       allGXaxis.exit().remove();
       //--------------------end: bottom axis

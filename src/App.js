@@ -6,6 +6,7 @@ import * as d3 from 'd3';
 import qlikApp from './Chart/qlikApp';
 import {dataCreateList, dataCreateCube} from './Chart/Data';
 import Chart from './Chart/Chart';
+import Measures from './Chart/Measures';
 
 //static values
 import {values} from './Chart/Values';
@@ -44,8 +45,13 @@ const App = () => {
   //     q.app.getObject('test', 'qgVhE');
   //   });
   // });
+  const setNewQMeasures = e => {
+    setQMeasures(e);
+    createQlik(e);
+    console.log(`e:`, e);
+  };
 
-  let qMeasures = [
+  const [qMeasures, setQMeasures] = useState([
     {
       qDef: {
         qDef: 'max([Sales Amount])'
@@ -61,10 +67,10 @@ const App = () => {
         qDef: 'avg([Sales Amount])'
       }
     }
-  ];
+  ]);
 
   const change = () => {
-    qMeasures = [
+    setQMeasures([
       {
         qDef: {
           qDef: 'count(distinct Customer)'
@@ -75,12 +81,12 @@ const App = () => {
           qDef: 'avg([Sales Amount])'
         }
       }
-    ];
+    ]);
     createQlik();
   };
 
   const change1 = () => {
-    qMeasures = [
+    setQMeasures([
       {
         qDef: {
           qDef: 'max([Sales Amount])'
@@ -96,28 +102,26 @@ const App = () => {
           qDef: 'avg([Sales Amount])'
         }
       }
-    ];
+    ]);
     createQlik();
   };
   const change2 = () => {
-    qMeasures = [
+    setQMeasures([
       {
         qDef: {
           qDef: 'count(distinct Customer)'
         }
       }
-    ];
+    ]);
     createQlik();
   };
   useEffect(() => {
-    createQlik();
+    createQlik(qMeasures);
   }, [isCreateCubeDone, isCreateListDone, app]);
 
-  const createQlik = () => {
+  const createQlik = newQMeasures => {
     //--------------beginning: version 1 when working on real data
-
-    const objCreateCube = Object.assign({}, obj, {qMeasures});
-
+    const objCreateCube = Object.assign({}, obj, {qMeasures: newQMeasures});
     setObj(objCreateCube);
     qlikApp(config).then(qlikObjects => {
       setApp(qlikObjects.app);
@@ -223,6 +227,7 @@ const App = () => {
               // beginSelections={beginSelections}
             />
           </div>
+          <Measures qMeasures={qMeasures} setNewQMeasures={setNewQMeasures} />
         </>
       ) : null}
     </div>

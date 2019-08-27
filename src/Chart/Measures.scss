@@ -1,0 +1,18 @@
+.Measures {
+    padding: 1rem;
+    
+    &__form {
+        display: grid;
+        // flex-direction: row;
+        grid-gap: 1.5rem;
+
+        &__allMeasures {
+            display: grid;
+            grid-template-columns:repeat(auto-fit, minmax(260px , auto));
+            grid-gap: 0.5rem;
+        }
+        &__newMeasures {
+            // padding-top: 1rem;
+        }
+    }
+}
