@@ -22,7 +22,8 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
   const [inSelectionMode, setInSelectionMode] = useState(true);
   const [selectedValuesArray, setSelectedValuesArray] = useState([]);
   const [isUpdated, setIsUpdated] = useState(false);
-  const [isHorizontal, setisHorizontal] = useState(true);
+  const [isVertical, setIsVertical] = useState(true);
+  const [isDirectionDefault, setIsDirectionDefault] = useState(true);
 
   const [widthWindow, setWidthWindow] = useState(window.innerWidth);
   const [heightWindow, setHeightWindow] = useState(responsiveHeight());
@@ -74,20 +75,50 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       const xScale = d3
         .scaleBand()
         .domain(allValuesXArray) // input
-        .range(isHorizontal ? [0, innerWidth] : [0, innerHeight])
+        .range(
+          isVertical
+            ? isDirectionDefault
+              ? [0, innerWidth]
+              : [0, innerWidth]
+            : isDirectionDefault
+            ? [0, innerHeight]
+            : [0, innerHeight]
+        )
         .padding(0.1); // output
 
       const allYScalesArray = allValuesYArray[0].map((e, i) =>
         d3
           .scaleLinear()
           .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
-          .range(isHorizontal ? [0, innerHeight] : [0, innerWidth])
+          .range(
+            isVertical
+              ? isDirectionDefault
+                ? [0, innerHeight]
+                : [0, innerHeight]
+              : isDirectionDefault
+              ? [0, innerWidth]
+              : [0, innerWidth]
+          )
+      );
+      const allYScalesArrayVertical = allValuesYArray[0].map((e, i) =>
+        d3
+          .scaleLinear()
+          .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
+          .range(
+            isVertical
+              ? isDirectionDefault
+                ? [0, innerHeight]
+                : [innerHeight, 0]
+              : isDirectionDefault
+              ? [0, innerWidth]
+              : [0, innerWidth]
+          )
       );
       const allYScalesArrayHorizontal = allValuesYArray[0].map((e, i) =>
         d3
           .scaleLinear()
           .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
-          .range(isHorizontal ? [0, 0] : [innerWidth, 0])
+          .range(isVertical ? [innerWidth, 0] : [innerWidth, 0])
       );
 
       //--------------------begin "create one single g, name: allGRects"
@@ -102,8 +133,10 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .transition(t)
         .attr(
           'transform',
-          isHorizontal
-            ? `translate(${margin.left},${heightWindow - margin.bottom})`
+          isVertical
+            ? isDirectionDefault
+              ? `translate(${margin.left},${heightWindow - margin.bottom})`
+              : `translate(${margin.left},${margin.top})`
             : `translate(${margin.left},${margin.bottom})rotate(90)`
         );
       allGRects.exit().remove();
@@ -126,7 +159,6 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
 
       //--------------------begin "inside groupGWithMutlipleRects, create multiple rect for each measure, name:allRectsInGroupG"
       const widthOfSingleChart = xScale.bandwidth() / numberOfMeasures;
-
       const allRectsInGroupG = groupGWithMutlipleRects.selectAll('rect').data(data => data[0].qNums);
       allRectsInGroupG
         .enter()
@@ -135,14 +167,20 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .transition(t)
         .attr('y', (d, i) => {
           const currentYScale = allYScalesArray[i];
-          return isHorizontal ? currentYScale(d) - innerHeight : currentYScale(d) - innerWidth;
+          return isVertical
+            ? isDirectionDefault
+              ? currentYScale(d) - innerHeight
+              : 1
+            : isDirectionDefault
+            ? currentYScale(d) - innerWidth
+            : -innerWidth;
         })
         .attr('x', (d, i) => {
           return widthOfSingleChart * i;
         })
         .attr('height', function(d, i) {
           const currentYScale = allYScalesArray[i];
-          return isHorizontal ? innerHeight - currentYScale(d) : innerWidth - currentYScale(d);
+          return isVertical ? innerHeight - currentYScale(d) : innerWidth - currentYScale(d);
         })
         .attr('width', (d, i) => {
           return widthOfSingleChart;
@@ -224,6 +262,17 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         translateAndRotate = 'translate(0,0) rotate(0)';
       }
 
+      let translateAndRotateTop = 'translate(-20,20) rotate(60)';
+      if (widthWindow > 600) {
+        translateAndRotateTop = 'translate(20,15) rotate(40)';
+      }
+      if (widthWindow > 800) {
+        translateAndRotateTop = 'translate(20,10) rotate(20)';
+      }
+      if (widthWindow > 1200) {
+        translateAndRotateTop = 'translate(0,-8) rotate(0)';
+      }
+
       let translateAndRotateLeftAxis = 'translate(-15,0) rotate(80)';
       if (widthWindow > 600) {
         translateAndRotateLeftAxis = 'translate(-15,0) rotate(60)';
@@ -244,15 +293,36 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .attr('class', 'xaxis')
         .merge(allGXaxis)
         .transition(t)
-        .call(isHorizontal ? d3.axisBottom(xScale) : d3.axisLeft(xScale))
+        .call(
+          isVertical
+            ? isDirectionDefault
+              ? d3.axisBottom(xScale)
+              : d3.axisTop(xScale)
+            : isDirectionDefault
+            ? d3.axisLeft(xScale)
+            : d3.axisRight(xScale)
+        )
         .attr(
           'transform',
-          isHorizontal
-            ? `translate(${margin.left},${heightWindow - margin.bottom})`
-            : `translate(${margin.left},${margin.top})`
+          isVertical
+            ? isDirectionDefault
+              ? `translate(${margin.left},${heightWindow - margin.bottom})`
+              : `translate(${margin.left},${margin.bottom})`
+            : isDirectionDefault
+            ? `translate(${margin.left},${margin.top})`
+            : `translate(${margin.left + innerWidth},${margin.top})`
         )
         .selectAll('text')
-        .attr('transform', isHorizontal ? translateAndRotate : 'translate(-25,0) rotate(0)')
+        .attr(
+          'transform',
+          isVertical
+            ? isDirectionDefault
+              ? translateAndRotate
+              : translateAndRotateTop
+            : isDirectionDefault
+            ? 'translate(-25,0) rotate(0)'
+            : 'translate(25,0) rotate(0)'
+        )
         .selectAll('line')
         .attr('x2', 0);
 
@@ -287,18 +357,28 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .transition(t)
         .attr('transform', `translate(${margin.left},${margin.top})`)
         .call(
-          isHorizontal
+          isVertical
+            ? isDirectionDefault
+              ? d3
+                  .axisLeft(allYScalesArray[measureNumberForLeftAxis])
+                  .ticks(heightWindow < 450 ? data.length / 2 : data.length)
+                  .tickFormat(yAxisTickFormat)
+              : d3
+                  .axisLeft(allYScalesArrayVertical[measureNumberForLeftAxis])
+                  .ticks(heightWindow < 450 ? data.length / 2 : data.length)
+                  .tickFormat(yAxisTickFormat)
+            : isDirectionDefault
             ? d3
-                .axisLeft(allYScalesArray[measureNumberForLeftAxis])
-                .ticks(heightWindow < 400 ? data.length / 3 : data.length)
+                .axisTop(allYScalesArrayHorizontal[measureNumberForLeftAxis])
+                .ticks(data.length)
                 .tickFormat(yAxisTickFormat)
             : d3
-                .axisTop(allYScalesArrayHorizontal[measureNumberForLeftAxis])
-                .ticks(heightWindow < 400 ? data.length / 3 : data.length)
+                .axisTop(allYScalesArrayVertical[measureNumberForLeftAxis])
+                .ticks(data.length)
                 .tickFormat(yAxisTickFormat)
         )
         .selectAll('text')
-        .attr('transform', isHorizontal ? null : translateAndRotateLeftAxis)
+        .attr('transform', isVertical ? null : translateAndRotateLeftAxis)
         .attr('fill', colors[measureNumberForLeftAxis])
         .style('font-size', '1.5em')
         .style('font-weight', 900);
@@ -322,22 +402,33 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
           .transition(t)
           .attr(
             'transform',
-            isHorizontal
+            isVertical
               ? `translate(${innerWidth + margin.left},${margin.top})`
               : `translate(${margin.left},${heightWindow - margin.bottom})`
           )
           .call(
-            isHorizontal
+            isVertical
+              ? isDirectionDefault
+                ? d3
+                    .axisRight(allYScalesArray[measureNumberForRightAxis])
+                    .ticks(heightWindow < 450 ? data.length / 2 : data.length)
+                    .tickFormat(yAxisTickFormat)
+                : d3
+                    .axisRight(allYScalesArrayVertical[measureNumberForRightAxis])
+                    .ticks(heightWindow < 450 ? data.length / 2 : data.length)
+                    .tickFormat(yAxisTickFormat)
+              : isDirectionDefault
               ? d3
-                  .axisRight(allYScalesArray[measureNumberForRightAxis])
-                  .ticks(heightWindow < 400 ? data.length / 3 : data.length)
+                  .axisBottom(allYScalesArrayHorizontal[measureNumberForRightAxis])
+                  .ticks(data.length)
                   .tickFormat(yAxisTickFormat)
               : d3
-                  .axisBottom(allYScalesArrayHorizontal[measureNumberForRightAxis])
-                  .ticks(heightWindow < 400 ? data.length / 3 : data.length)
+                  .axisBottom(allYScalesArrayVertical[measureNumberForRightAxis])
+                  .ticks(data.length)
                   .tickFormat(yAxisTickFormat)
           )
           .selectAll('text')
+          .attr('transform', isVertical ? null : translateAndRotateLeftAxis)
           .attr('fill', colors[measureNumberForRightAxis])
           .style('font-size', '1.5em')
           .style('font-weight', 900);
@@ -349,7 +440,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       }
     };
     createChart();
-  }, [data, widthWindow, heightWindow, isUpdated, selectedValuesArray, isHorizontal]);
+  }, [data, widthWindow, heightWindow, isUpdated, selectedValuesArray, isVertical, isDirectionDefault]);
 
   //--------------------beginning: stuff when working on real data
   // const confirmSelectionHandleClick = () => {
@@ -377,12 +468,17 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
   //--------------------end: stuff when working on real data
 
   const changeLandscape = e => {
-    isHorizontal ? (e.target.innerHTML = 'click for vertical') : (e.target.innerHTML = 'click for horizontal');
-    setisHorizontal(!isHorizontal);
+    isVertical ? (e.target.innerHTML = 'click for horizontal') : (e.target.innerHTML = 'click for vertical');
+    setIsVertical(!isVertical);
+  };
+
+  const changeDirection = () => {
+    setIsDirectionDefault(!isDirectionDefault);
   };
   return (
     <div className='chart3'>
-      <button onClick={e => changeLandscape(e)}>click for horizontal</button>
+      <button onClick={e => changeLandscape(e)}>click for vertical</button>
+      <button onClick={e => changeDirection(e)}>click for change direction of chart</button>
       {/* <div className='navBar'>
         <CurrentSelectionTab
           data.firstValue={data.firstValue}

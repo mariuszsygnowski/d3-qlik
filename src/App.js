@@ -82,7 +82,18 @@ const App = () => {
         }
       }
     ]);
-    createQlik();
+    createQlik([
+      {
+        qDef: {
+          qDef: 'count(distinct Customer)'
+        }
+      },
+      {
+        qDef: {
+          qDef: 'avg([Sales Amount])'
+        }
+      }
+    ]);
   };
 
   const change1 = () => {
