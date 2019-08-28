@@ -72,9 +72,11 @@ const Measures = ({qMeasures, setNewQMeasures}) => {
         <div className='Measures__form__newMeasures'>
           <p>add new measure</p>
           <input type='text' onChange={e => inputHandle(e)} value={inputVal} />
-          <button onClick={handleNewMeasure}>click to add new measure</button>
+          <button onClick={handleNewMeasure}>add new measure</button>
         </div>
-        <button type='submit'>confirm changes</button>
+        <button className='Measures__form__btn-submit' type='submit'>
+          confirm changes
+        </button>
       </form>
     </div>
   );

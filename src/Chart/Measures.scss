@@ -3,7 +3,6 @@
     
     &__form {
         display: grid;
-        // flex-direction: row;
         grid-gap: 1.5rem;
 
         &__allMeasures {
@@ -11,8 +10,14 @@
             grid-template-columns:repeat(auto-fit, minmax(260px , auto));
             grid-gap: 0.5rem;
         }
+
         &__newMeasures {
             // padding-top: 1rem;
         }
+
+        &__btn-submit {
+            width: max-content;
+        }
+        
     }
 }
