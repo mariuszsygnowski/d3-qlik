@@ -187,7 +187,6 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
           return colors[i];
         });
       allRectsInGroupG.exit().remove();
-      console.log('ok');
       //--------------------end "inside groupGWithMutlipleRects, create multiple rect for each measure, name:allRectsInGroupG"
 
       //--------------------begin "on click"
