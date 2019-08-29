@@ -84,7 +84,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
             ? [0, innerHeight]
             : [0, innerHeight]
         )
-        .padding(0.1); // output
+        .padding(0.1); // outpu
 
       const allYScalesArray = allValuesYArray[0].map((e, i) =>
         d3
