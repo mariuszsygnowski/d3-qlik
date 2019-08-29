@@ -48,7 +48,6 @@ const App = () => {
   const setNewQMeasures = e => {
     setQMeasures(e);
     createQlik(e);
-    console.log(`e:`, e);
   };
 
   const [qMeasures, setQMeasures] = useState([
@@ -69,63 +68,6 @@ const App = () => {
     }
   ]);
 
-  const change = () => {
-    setQMeasures([
-      {
-        qDef: {
-          qDef: 'count(distinct Customer)'
-        }
-      },
-      {
-        qDef: {
-          qDef: 'avg([Sales Amount])'
-        }
-      }
-    ]);
-    createQlik([
-      {
-        qDef: {
-          qDef: 'count(distinct Customer)'
-        }
-      },
-      {
-        qDef: {
-          qDef: 'avg([Sales Amount])'
-        }
-      }
-    ]);
-  };
-
-  const change1 = () => {
-    setQMeasures([
-      {
-        qDef: {
-          qDef: 'max([Sales Amount])'
-        }
-      },
-      {
-        qDef: {
-          qDef: 'count(distinct Customer)'
-        }
-      },
-      {
-        qDef: {
-          qDef: 'avg([Sales Amount])'
-        }
-      }
-    ]);
-    createQlik();
-  };
-  const change2 = () => {
-    setQMeasures([
-      {
-        qDef: {
-          qDef: 'count(distinct Customer)'
-        }
-      }
-    ]);
-    createQlik();
-  };
   useEffect(() => {
     createQlik(qMeasures);
   }, [isCreateCubeDone, isCreateListDone, app]);
@@ -217,9 +159,6 @@ const App = () => {
 
   return (
     <div className='App'>
-      <button onClick={change}>click</button>
-      <button onClick={change1}>click1</button>
-      <button onClick={change2}>click2</button>
       {/* <div id='nav' /> */}
       {isCreateCubeDone && isCreateListDone ? (
         <>

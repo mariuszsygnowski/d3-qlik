@@ -143,14 +143,12 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       //--------------------end "create one single g, name: allGRects"
 
       //--------------------begin "inside of allGRects, create g for each dimension, name: groupGWithMutlipleRects"
-      const colors = ['red', 'LIME', 'blue', 'DARKSALMON'];
+      const colors = ['red', 'LIME', 'blue', 'DARKSALMON', 'Silver', 'FUCHSIA'];
       const groupGWithMutlipleRects = allGRects.selectAll(`.groupRects`).data(data);
       groupGWithMutlipleRects
         .enter()
         .append('g')
-        .attr('class', (d, i) => {
-          return `groupRects`;
-        })
+        .attr('class', 'groupRects')
         .merge(groupGWithMutlipleRects)
         .transition(t)
         .attr('transform', d => `translate(${xScale(d[0].qText)},${0})`);
@@ -256,18 +254,18 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         translateAndRotate = 'translate(20,15) rotate(40)';
       }
       if (widthWindow > 800) {
-        translateAndRotate = 'translate(20,10) rotate(20)';
+        translateAndRotate = 'translate(20,8) rotate(20)';
       }
       if (widthWindow > 1200) {
         translateAndRotate = 'translate(0,0) rotate(0)';
       }
 
-      let translateAndRotateTop = 'translate(-20,20) rotate(60)';
+      let translateAndRotateTop = 'translate(12,-25) rotate(-60)';
       if (widthWindow > 600) {
-        translateAndRotateTop = 'translate(20,15) rotate(40)';
+        translateAndRotateTop = 'translate(16,-23) rotate(-40)';
       }
       if (widthWindow > 800) {
-        translateAndRotateTop = 'translate(20,10) rotate(20)';
+        translateAndRotateTop = 'translate(20,-15) rotate(-20)';
       }
       if (widthWindow > 1200) {
         translateAndRotateTop = 'translate(0,-8) rotate(0)';
@@ -281,7 +279,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         translateAndRotateLeftAxis = 'translate(-15,0) rotate(40)';
       }
       if (widthWindow > 1200) {
-        translateAndRotateLeftAxis = 'translate(0,0) rotate(0)';
+        translateAndRotateLeftAxis = 'translate(15,0) rotate(0)';
       }
 
       //--------------------begin: bottom axis
@@ -320,11 +318,9 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
               ? translateAndRotate
               : translateAndRotateTop
             : isDirectionDefault
-            ? 'translate(-25,0) rotate(0)'
-            : 'translate(25,0) rotate(0)'
-        )
-        .selectAll('line')
-        .attr('x2', 0);
+            ? 'translate(-22,-5)'
+            : 'translate(20,-5)'
+        );
 
       allGXaxis.exit().remove();
       //--------------------end: bottom axis
@@ -376,12 +372,18 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
                 .axisTop(allYScalesArrayVertical[measureNumberForLeftAxis])
                 .ticks(data.length)
                 .tickFormat(yAxisTickFormat)
-        )
+        );
+      allGYaxisL
         .selectAll('text')
         .attr('transform', isVertical ? null : translateAndRotateLeftAxis)
         .attr('fill', colors[measureNumberForLeftAxis])
         .style('font-size', '1.5em')
         .style('font-weight', 900);
+
+      allGYaxisL
+        .selectAll('line')
+        .attr('y2', isVertical ? 0 : -6)
+        .attr('x2', isVertical ? -6 : 0);
 
       allGYaxisL.exit().remove();
       //--------------------end: left axis
@@ -433,6 +435,8 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
           .style('font-size', '1.5em')
           .style('font-weight', 900);
 
+        isVertical ? allGYaxisR.selectAll('line').attr('y2', 0) : allGYaxisR.selectAll('line').attr('y2', 0);
+        isVertical ? allGYaxisR.selectAll('text').attr('y', 0) : allGYaxisR.selectAll('text').attr('y', 0);
         allGYaxisR.exit().remove();
         //--------------------end: right axis
       } else {
