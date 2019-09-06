@@ -179,26 +179,26 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections, colors}) =
       //     .on('end', dragended);
       // };
 
-      const dragstarted = d => {
+      function dragstarted(d) {
         console.log(`this - dragstarted:`, this);
         d3.select(this)
           .raise()
           .attr('stroke', 'black');
-      };
+      }
 
-      const dragged = d => {
+      function dragged(d) {
         console.log(`this - dragged:`, this);
         console.log(`d - dragged:`, d);
         d3.select(this)
           .raise()
-          .attr('x', (d.x = d3.event.x))
-          .attr('y', (d.y = d3.event.y));
-      };
+          .attr('x', d3.event.x)
+          .attr('y', d3.event.y);
+      }
 
-      const dragended = d => {
+      function dragended(d) {
         console.log(`this - dragended:`, this);
         d3.select(this).attr('stroke', null);
-      };
+      }
       //--------------------begin "inside groupGWithMutlipleRects, create multiple rect for each measure, name:allRectsInGroupG"
       const widthOfSingleChart = xScale.bandwidth() / numberOfMeasures;
       const allRectsInGroupG = groupGWithMutlipleRects.selectAll('rect').data(data => data[0].qNums);
