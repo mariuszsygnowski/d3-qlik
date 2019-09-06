@@ -38,6 +38,14 @@ const App = () => {
   const [selectedCubeValues, setSelectedCubeValues] = useState([]);
   const [app, setApp] = useState(false);
   const [obj, setObj] = useState(false);
+  const [colors, setColors] = useState([
+    'rgb(255, 0, 0)',
+    'rgb(0, 255, 0)',
+    'rgb(0, 0, 255)',
+    'rgb(233, 150, 122)',
+    'rgb(192, 192, 192)',
+    'rgb(255, 0, 255)'
+  ]);
 
   // useEffect(() => {
   //   qlikApp(config).then(q => {
@@ -173,11 +181,12 @@ const App = () => {
             <Chart
               data={dataCube}
               dataNamesX={dataNamesX}
+              colors={colors}
               // sendNewSelections={sendNewSelections}
               // beginSelections={beginSelections}
             />
           </div>
-          <Measures qMeasures={qMeasures} setNewQMeasures={setNewQMeasures} />
+          <Measures qMeasures={qMeasures} setNewQMeasures={setNewQMeasures} colors={colors} setColors={setColors} />
         </>
       ) : null}
     </div>

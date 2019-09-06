@@ -8,7 +8,7 @@ import {values} from './Values';
 
 // import CurrentSelectionTab from './CurrentSelectionTab';
 
-const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
+const Chart = ({data, dataNamesX, sendNewSelections, beginSelections, colors}) => {
   const responsiveHeight = () => {
     if (window.innerHeight < 500) {
       return 500 - 275;
@@ -43,7 +43,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
   const ref = useRef(null);
   const t = d3
     .transition()
-    .duration(250)
+    .duration(550)
     .ease(d3.easeLinear);
 
   useEffect(() => {
@@ -143,7 +143,6 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
       //--------------------end "create one single g, name: allGRects"
 
       //--------------------begin "inside of allGRects, create g for each dimension, name: groupGWithMutlipleRects"
-      const colors = ['red', 'LIME', 'blue', 'DARKSALMON', 'Silver', 'FUCHSIA'];
       const groupGWithMutlipleRects = allGRects.selectAll(`.groupRects`).data(data);
       groupGWithMutlipleRects
         .enter()
@@ -154,7 +153,52 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .attr('transform', d => `translate(${xScale(d[0].qText)},${0})`);
       groupGWithMutlipleRects.exit().remove();
       //--------------------end "inside of allGRects, create g for each dimension, name: groupGWithMutlipleRects"
+      // const drag = () => {
+      //   console.log(`this:`, this);
+      //   function dragstarted(d) {
+      //     console.log(`this:`, this);
+      //     d3.select(this)
+      //       .raise()
+      //       .attr('stroke', 'black');
+      //   }
 
+      //   function dragged(d) {
+      //     d3.select(this)
+      //       .attr('x', (d.x = d3.event.x))
+      //       .attr('y', (d.y = d3.event.y));
+      //   }
+
+      //   function dragended(d) {
+      //     d3.select(this).attr('stroke', null);
+      //   }
+
+      //   return d3
+      //     .drag()
+      //     .on('start', dragstarted)
+      //     .on('drag', dragged)
+      //     .on('end', dragended);
+      // };
+
+      const dragstarted = d => {
+        console.log(`this - dragstarted:`, this);
+        d3.select(this)
+          .raise()
+          .attr('stroke', 'black');
+      };
+
+      const dragged = d => {
+        console.log(`this - dragged:`, this);
+        console.log(`d - dragged:`, d);
+        d3.select(this)
+          .raise()
+          .attr('x', (d.x = d3.event.x))
+          .attr('y', (d.y = d3.event.y));
+      };
+
+      const dragended = d => {
+        console.log(`this - dragended:`, this);
+        d3.select(this).attr('stroke', null);
+      };
       //--------------------begin "inside groupGWithMutlipleRects, create multiple rect for each measure, name:allRectsInGroupG"
       const widthOfSingleChart = xScale.bandwidth() / numberOfMeasures;
       const allRectsInGroupG = groupGWithMutlipleRects.selectAll('rect').data(data => data[0].qNums);
@@ -186,6 +230,45 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections}) => {
         .attr('fill', (d, i) => {
           return colors[i];
         });
+
+      groupGWithMutlipleRects.selectAll('rect').call(
+        d3
+          .drag()
+          .on('start', dragstarted)
+          .on('drag', dragged)
+          .on('end', dragended)
+      );
+
+      // SVG.selectAll('rect').call(started);
+      // SVG.selectAll('rect').call(drag);
+
+      // d3.drag().on('start', function() {
+      //   console.log(`this:`, this);
+      // })(SVG.selectAll('rect'));
+      // d3.drag().on('end', function() {
+      //   console.log(`end this:`, this);
+      // })(SVG.selectAll('rect'));
+      // var dragHandler = d3.drag().on('drag', function() {
+      //   // console.log(`this:`, this.attributes.height);
+      //   // console.log(`d3.event.x:`, d3.event.y);
+      //   // console.log(`d3.select(this).attr("height"):`, d3.select(this).attr('height'));
+      //   d3.select(this)
+      //     .attr('x', d3.event.x)
+      //     .attr('y', () => {
+      //       const yEvent = d3.event.y;
+      //       const height = +d3.select(this).attr('height');
+      //       console.log(`yEvent, height:`, yEvent, height);
+      //       console.log(`height + yEvent:`, -height - yEvent);
+      //       return yEvent + yEvent;
+      //     });
+      // });
+      // const a = SVG.selectAll('rect');
+      // dragHandler(a);
+      // dragHandlerE(a);
+      // dragHandlerS(a);
+
+      // const all = SVG.selectAll('rect').call(d3.drag().on('start', (d, i, e) => started(d, i, e)));
+      // .call(d3.drag().on('start', (d, i, e) => started(d, i, e)));
       allRectsInGroupG.exit().remove();
       //--------------------end "inside groupGWithMutlipleRects, create multiple rect for each measure, name:allRectsInGroupG"
 
