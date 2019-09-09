@@ -3,12 +3,21 @@ import {} from './CurrentSelectionTab';
 import React, {useState, useEffect, useRef} from 'react';
 import * as d3 from 'd3';
 import './Chart.scss';
-import {numToWords} from './numToWords';
-import {values} from './Values';
+// import {numToWords} from './numToWords';
+// import {values} from './Values';
 
 // import CurrentSelectionTab from './CurrentSelectionTab';
 
-const Chart = ({data, dataNamesX, sendNewSelections, beginSelections, colors}) => {
+const Chart = ({
+  data,
+  dataNamesX,
+  sendNewSelections,
+  beginSelections,
+  colors,
+  setColors,
+  qMeasures,
+  setNewQMeasures
+}) => {
   const responsiveHeight = () => {
     if (window.innerHeight < 500) {
       return 500 - 275;
@@ -142,15 +151,20 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections, colors}) =
       allGRects.exit().remove();
       //--------------------end "create one single g, name: allGRects"
 
+      const tt = [];
       //--------------------begin "inside of allGRects, create g for each dimension, name: groupGWithMutlipleRects"
       const groupGWithMutlipleRects = allGRects.selectAll(`.groupRects`).data(data);
       groupGWithMutlipleRects
         .enter()
         .append('g')
         .attr('class', 'groupRects')
+        .attr('id', (d, i) => i)
         .merge(groupGWithMutlipleRects)
         .transition(t)
-        .attr('transform', d => `translate(${xScale(d[0].qText)},${0})`);
+        .attr('transform', (d, i) => {
+          tt.push(xScale(d[0].qText));
+          return `translate(${xScale(d[0].qText)},${0})`;
+        });
       groupGWithMutlipleRects.exit().remove();
       //--------------------end "inside of allGRects, create g for each dimension, name: groupGWithMutlipleRects"
       // const drag = () => {
@@ -179,25 +193,74 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections, colors}) =
       //     .on('end', dragended);
       // };
 
+      let widthChart = 0;
+      let heightChart = 0;
+      let xPos = 0;
+      let yPos = 0;
+      let positionX = 0;
+      let positionY = 0;
       function dragstarted(d) {
-        console.log(`this - dragstarted:`, this);
-        d3.select(this)
-          .raise()
-          .attr('stroke', 'black');
+        const strTrans = this.parentElement.attributes.transform.nodeValue;
+        //extract only value from transform, example from
+        //transform="translate(5.535269737243652, 0)" I get 5.535269737243652
+        const valTransformDim = +strTrans.substring(strTrans.lastIndexOf('(') + 1, strTrans.lastIndexOf(','));
+
+        //xPos and yPos will be used only to track differences when user will move mouse
+        xPos = +d3.event.sourceEvent.clientX;
+        yPos = +d3.event.sourceEvent.clientY;
+
+        const idObjectDraged = +d3.select(this).attr('id');
+        const heightR = +d3.select(this).attr('height');
+        const widthR = +d3.select(this).attr('width');
+        const transformInGElement = +d3.select(this).attr('x');
+
+        positionX = margin.left + valTransformDim + transformInGElement;
+        positionY = innerHeight - +d3.select(this).attr('height');
+        SVG.append('rect')
+          .attr('id', 'tempRect')
+          .attr('height', heightR)
+          .attr('width', widthR)
+          .attr('x', positionX)
+          .attr('y', positionY + margin.top)
+          .attr('fill', colors[idObjectDraged])
+          .attr('stroke', 'black')
+          .attr('stroke-width', 2)
+          .attr('opacity', 0.6);
       }
 
       function dragged(d) {
-        console.log(`this - dragged:`, this);
-        console.log(`d - dragged:`, d);
-        d3.select(this)
-          .raise()
-          .attr('x', d3.event.x)
-          .attr('y', d3.event.y);
+        SVG.select('#tempRect')
+          .attr('x', -(xPos - +d3.event.sourceEvent.clientX) + positionX)
+          .attr('y', -(yPos - +d3.event.sourceEvent.clientY) + positionY + margin.top);
       }
 
       function dragended(d) {
-        console.log(`this - dragended:`, this);
-        d3.select(this).attr('stroke', null);
+        SVG.select('#tempRect').remove();
+        const d3Select = d3.select(
+          document.elementFromPoint(d3.event.sourceEvent.clientX, d3.event.sourceEvent.clientY)
+        );
+
+        const idObjectDraged = +d3Select.attr('id');
+        const idObjectDragedTo = +d3.select(this).attr('id');
+        let copyQMeasures = [...qMeasures];
+        let copyColors = [...colors];
+
+        const objectDraged = copyQMeasures[idObjectDraged];
+        const objectDestination = copyQMeasures[idObjectDragedTo];
+
+        const newQMeasuress = copyQMeasures.map((e, i) => {
+          if (i === idObjectDraged) {
+            copyColors[i] = colors[idObjectDragedTo];
+            return objectDestination;
+          } else if (i === idObjectDragedTo) {
+            copyColors[i] = colors[idObjectDraged];
+
+            return objectDraged;
+          } else {
+            return e;
+          }
+        });
+        setNewQMeasures(newQMeasuress);
       }
       //--------------------begin "inside groupGWithMutlipleRects, create multiple rect for each measure, name:allRectsInGroupG"
       const widthOfSingleChart = xScale.bandwidth() / numberOfMeasures;
@@ -207,6 +270,7 @@ const Chart = ({data, dataNamesX, sendNewSelections, beginSelections, colors}) =
         .append('rect')
         .merge(allRectsInGroupG)
         .transition(t)
+        .attr('id', (d, i) => i)
         .attr('y', (d, i) => {
           const currentYScale = allYScalesArray[i];
           return isVertical

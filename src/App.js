@@ -182,6 +182,9 @@ const App = () => {
               data={dataCube}
               dataNamesX={dataNamesX}
               colors={colors}
+              setColors={setColors}
+              qMeasures={qMeasures}
+              setNewQMeasures={setNewQMeasures}
               // sendNewSelections={sendNewSelections}
               // beginSelections={beginSelections}
             />

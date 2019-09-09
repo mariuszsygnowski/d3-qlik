@@ -1,3 +1,4 @@
+/* eslint-disable */
 import React, {useState, useEffect, useRef} from 'react';
 
 const SingleMeasure = ({value, handleClickR, onChangeValue, i}) => {
@@ -5,6 +6,7 @@ const SingleMeasure = ({value, handleClickR, onChangeValue, i}) => {
 
   useEffect(() => {
     setVal(value);
+    /* eslint-disable */
   });
 
   const handleClickRemove = () => {

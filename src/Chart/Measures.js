@@ -1,6 +1,8 @@
+/* eslint-disable */
 import React, {useState, useEffect, useRef} from 'react';
 import SingleMeasure from './SingleMeasure.js';
 import './Measures.scss';
+/* eslint-disable */
 import * as d3 from 'd3';
 
 const Measures = ({qMeasures, setNewQMeasures, colors, setColors}) => {
@@ -9,6 +11,7 @@ const Measures = ({qMeasures, setNewQMeasures, colors, setColors}) => {
 
   useEffect(() => {
     setQMeasuress(qMeasures);
+    /* eslint-disable */
   }, []);
 
   const handleClickR = (e, i) => {
