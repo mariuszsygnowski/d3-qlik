@@ -199,20 +199,25 @@ const Chart = ({
       let yPos = 0;
       let positionX = 0;
       let positionY = 0;
+      let didIFound = false;
+      let valTransformDim = '';
+      let idObjectDraged, heightR, widthR, transformInGElement, strTrans, idDestination, curr, prev, desId, desEle;
       function dragstarted(d) {
-        const strTrans = this.parentElement.attributes.transform.nodeValue;
+        // console.log(`this.closest("svg"):`, this.closest('svg'));
+        strTrans = this.parentElement.getAttribute('transform');
         //extract only value from transform, example from
         //transform="translate(5.535269737243652, 0)" I get 5.535269737243652
-        const valTransformDim = +strTrans.substring(strTrans.lastIndexOf('(') + 1, strTrans.lastIndexOf(','));
+        valTransformDim = +strTrans.substring(strTrans.lastIndexOf('(') + 1, strTrans.lastIndexOf(','));
 
         //xPos and yPos will be used only to track differences when user will move mouse
         xPos = +d3.event.sourceEvent.clientX;
         yPos = +d3.event.sourceEvent.clientY;
 
-        const idObjectDraged = +d3.select(this).attr('id');
-        const heightR = +d3.select(this).attr('height');
-        const widthR = +d3.select(this).attr('width');
-        const transformInGElement = +d3.select(this).attr('x');
+        curr = d3.select(this);
+        idObjectDraged = +d3.select(this).attr('id');
+        heightR = +d3.select(this).attr('height');
+        widthR = +d3.select(this).attr('width');
+        transformInGElement = +d3.select(this).attr('x');
 
         positionX = margin.left + valTransformDim + transformInGElement;
         positionY = innerHeight - +d3.select(this).attr('height');
@@ -225,16 +230,49 @@ const Chart = ({
           .attr('fill', colors[idObjectDraged])
           .attr('stroke', 'black')
           .attr('stroke-width', 2)
-          .attr('opacity', 0.6);
+          .attr('opacity', 0.3);
       }
 
       function dragged(d) {
         SVG.select('#tempRect')
           .attr('x', -(xPos - +d3.event.sourceEvent.clientX) + positionX)
           .attr('y', -(yPos - +d3.event.sourceEvent.clientY) + positionY + margin.top);
+
+        const d3Select = d3.select(
+          document.elementsFromPoint(d3.event.sourceEvent.clientX, d3.event.sourceEvent.clientY)
+        );
+
+        d3Select.each(function(d) {
+          this.some(e => {
+            if (d3.select(e).attr('class') === 'allRectsInGroupG') {
+              desEle = d3.select(e);
+              desId = +desEle.attr('id');
+              didIFound = true;
+            } else {
+              didIFound = false;
+            }
+            return didIFound;
+          });
+        });
+
+        if (didIFound && desId !== idObjectDraged) {
+          if (curr) {
+            curr.style('opacity', null);
+          }
+          prev = curr;
+          desEle.style('opacity', 0.4);
+          curr = desEle;
+        } else {
+          if (curr) {
+            curr.style('opacity', null);
+          }
+        }
       }
 
       function dragended(d) {
+        if (desEle) {
+          desEle.style('opacity', null);
+        }
         SVG.select('#tempRect').remove();
         const d3Select = d3.select(
           document.elementFromPoint(d3.event.sourceEvent.clientX, d3.event.sourceEvent.clientY)
@@ -271,6 +309,7 @@ const Chart = ({
         .merge(allRectsInGroupG)
         .transition(t)
         .attr('id', (d, i) => i)
+        .attr('class', 'allRectsInGroupG')
         .attr('y', (d, i) => {
           const currentYScale = allYScalesArray[i];
           return isVertical
