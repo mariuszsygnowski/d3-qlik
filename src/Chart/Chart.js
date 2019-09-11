@@ -16,26 +16,28 @@ const Chart = ({
   colors,
   setColors,
   qMeasures,
-  setNewQMeasures
+  setNewQMeasures,
+  isDirectionDefault,
+  isVertical
 }) => {
   const responsiveHeight = () => {
-    if (window.innerHeight < 500) {
-      return 500 - 275;
-    } else if (window.innerHeight > 1000) {
-      return 1000 - 275;
-    } else {
-      return window.innerHeight - 275;
-    }
+    // if (window.innerHeight < 500) {
+    //   return 500 - 275;
+    // } else if (window.innerHeight > 1000) {
+    //   return 1000 - 275;
+    // } else {
+    //   return window.innerHeight - 275;
+    // }
+    return 400;
   };
 
   const [inSelectionMode, setInSelectionMode] = useState(true);
   const [selectedValuesArray, setSelectedValuesArray] = useState([]);
   const [isUpdated, setIsUpdated] = useState(false);
-  const [isVertical, setIsVertical] = useState(true);
-  const [isDirectionDefault, setIsDirectionDefault] = useState(true);
 
   const [widthWindow, setWidthWindow] = useState(window.innerWidth);
   const [heightWindow, setHeightWindow] = useState(responsiveHeight());
+  const [heightBrushSvg, setHeightBrushSvg] = useState(50);
 
   useEffect(() => {
     const handleResize = () => {
@@ -56,7 +58,7 @@ const Chart = ({
     .ease(d3.easeLinear);
 
   useEffect(() => {
-    const margin = {top: 50, right: 80, bottom: 50, left: 80};
+    const margin = {top: 50, right: 80, bottom: 50, left: 80, middle: 40};
     const innerWidth = widthWindow - margin.left - margin.right;
     const innerHeight = heightWindow - margin.top - margin.bottom;
 
@@ -102,7 +104,7 @@ const Chart = ({
           .range(
             isVertical
               ? isDirectionDefault
-                ? [0, innerHeight]
+                ? [0, innerHeight - heightBrushSvg]
                 : [0, innerHeight]
               : isDirectionDefault
               ? [0, innerWidth]
@@ -116,7 +118,35 @@ const Chart = ({
           .range(
             isVertical
               ? isDirectionDefault
-                ? [0, innerHeight]
+                ? [0, innerHeight - heightBrushSvg]
+                : [innerHeight, 0]
+              : isDirectionDefault
+              ? [0, innerWidth]
+              : [0, innerWidth]
+          )
+      );
+      const allYScalesArrayB = allValuesYArray[0].map((e, i) =>
+        d3
+          .scaleLinear()
+          .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
+          .range(
+            isVertical
+              ? isDirectionDefault
+                ? [0, heightBrushSvg]
+                : [0, innerHeight]
+              : isDirectionDefault
+              ? [0, innerWidth]
+              : [0, innerWidth]
+          )
+      );
+      const allYScalesArrayVerticalB = allValuesYArray[0].map((e, i) =>
+        d3
+          .scaleLinear()
+          .domain([d3.max(arrayForAllValuesFromEachDimension[i]) * 1.03, 0]) // input
+          .range(
+            isVertical
+              ? isDirectionDefault
+                ? [0, heightBrushSvg]
                 : [innerHeight, 0]
               : isDirectionDefault
               ? [0, innerWidth]
@@ -144,14 +174,14 @@ const Chart = ({
           'transform',
           isVertical
             ? isDirectionDefault
-              ? `translate(${margin.left},${heightWindow - margin.bottom})`
+              ? `translate(${margin.left},${innerHeight + margin.top - heightBrushSvg})`
               : `translate(${margin.left},${margin.top})`
             : `translate(${margin.left},${margin.bottom})rotate(90)`
         );
       allGRects.exit().remove();
       //--------------------end "create one single g, name: allGRects"
 
-      const tt = [];
+      // const tt = [];
       //--------------------begin "inside of allGRects, create g for each dimension, name: groupGWithMutlipleRects"
       const groupGWithMutlipleRects = allGRects.selectAll(`.groupRects`).data(data);
       groupGWithMutlipleRects
@@ -162,7 +192,7 @@ const Chart = ({
         .merge(groupGWithMutlipleRects)
         .transition(t)
         .attr('transform', (d, i) => {
-          tt.push(xScale(d[0].qText));
+          // tt.push(xScale(d[0].qText));
           return `translate(${xScale(d[0].qText)},${0})`;
         });
       groupGWithMutlipleRects.exit().remove();
@@ -314,7 +344,7 @@ const Chart = ({
           const currentYScale = allYScalesArray[i];
           return isVertical
             ? isDirectionDefault
-              ? currentYScale(d) - innerHeight
+              ? currentYScale(d) - innerHeight + heightBrushSvg
               : 1
             : isDirectionDefault
             ? currentYScale(d) - innerWidth
@@ -325,7 +355,7 @@ const Chart = ({
         })
         .attr('height', function(d, i) {
           const currentYScale = allYScalesArray[i];
-          return isVertical ? innerHeight - currentYScale(d) : innerWidth - currentYScale(d);
+          return isVertical ? innerHeight - heightBrushSvg - currentYScale(d) : innerWidth - currentYScale(d);
         })
         .attr('width', (d, i) => {
           return widthOfSingleChart;
@@ -490,7 +520,7 @@ const Chart = ({
           'transform',
           isVertical
             ? isDirectionDefault
-              ? `translate(${margin.left},${heightWindow - margin.bottom})`
+              ? `translate(${margin.left},${heightWindow - margin.bottom - heightBrushSvg})`
               : `translate(${margin.left},${margin.bottom})`
             : isDirectionDefault
             ? `translate(${margin.left},${margin.top})`
@@ -628,6 +658,62 @@ const Chart = ({
       } else {
         SVG.selectAll('g.yaxisr').remove();
       }
+
+      const SVGB = SVG.selectAll('g#brush').data(['create only one element g so in this array is only one element']);
+
+      SVGB.enter()
+        .append('g')
+        .attr('id', 'brush')
+        .merge(SVGB)
+        .attr('transform', `translate(${margin.left},${innerHeight + margin.bottom + margin.middle})`);
+      SVGB.exit().remove();
+
+      //--------------------begin "inside of allGRects, create g for each dimension, name: groupGWithMutlipleRects"
+      const groupGWithMutlipleRectsB = SVGB.selectAll(`.groupRects`).data(data);
+      groupGWithMutlipleRectsB
+        .enter()
+        .append('g')
+        .attr('class', 'groupRects')
+        .attr('id', (d, i) => i)
+        .merge(groupGWithMutlipleRectsB)
+        .transition(t)
+        .attr('transform', (d, i) => {
+          return `translate(${xScale(d[0].qText)},${0})`;
+        });
+      groupGWithMutlipleRectsB.exit().remove();
+      //--------------------end "inside of allGRects, create g for each dimension, name: groupGWithMutlipleRects"
+      const allRectsInGroupGB = groupGWithMutlipleRectsB.selectAll('rect').data(data => data[0].qNums);
+      allRectsInGroupGB
+        .enter()
+        .append('rect')
+        .merge(allRectsInGroupGB)
+        .transition(t)
+        .attr('id', (d, i) => i)
+        .attr('class', 'allRectsInGroupGB')
+        .attr('y', (d, i) => {
+          const currentYScale = allYScalesArrayB[i];
+          return isVertical
+            ? isDirectionDefault
+              ? currentYScale(d) - heightBrushSvg
+              : 1
+            : isDirectionDefault
+            ? currentYScale(d) - innerWidth
+            : -innerWidth;
+        })
+        .attr('x', (d, i) => {
+          return widthOfSingleChart * i;
+        })
+        .attr('height', function(d, i) {
+          const currentYScale = allYScalesArrayB[i];
+          return isVertical ? heightBrushSvg - currentYScale(d) : innerWidth - currentYScale(d);
+        })
+        .attr('width', (d, i) => {
+          return widthOfSingleChart;
+        })
+        .attr('fill', (d, i) => {
+          return colors[i];
+        });
+      allRectsInGroupGB.exit().remove();
     };
     createChart();
   }, [data, widthWindow, heightWindow, isUpdated, selectedValuesArray, isVertical, isDirectionDefault]);
@@ -657,18 +743,8 @@ const Chart = ({
   // };
   //--------------------end: stuff when working on real data
 
-  const changeLandscape = e => {
-    isVertical ? (e.target.innerHTML = 'click for horizontal') : (e.target.innerHTML = 'click for vertical');
-    setIsVertical(!isVertical);
-  };
-
-  const changeDirection = () => {
-    setIsDirectionDefault(!isDirectionDefault);
-  };
   return (
     <div className='chart3'>
-      <button onClick={e => changeLandscape(e)}>click for vertical</button>
-      <button onClick={e => changeDirection(e)}>click for change direction of chart</button>
       {/* <div className='navBar'>
         <CurrentSelectionTab
           data.firstValue={data.firstValue}

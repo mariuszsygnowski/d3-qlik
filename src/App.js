@@ -36,6 +36,9 @@ const App = () => {
   const [isCreateCubeDone, setIsCreateCubeDone] = useState(false);
   const [isCreateListDone, setIsCreateListDone] = useState(false);
   const [selectedCubeValues, setSelectedCubeValues] = useState([]);
+  const [isDirectionDefault, setIsDirectionDefault] = useState(true);
+  const [isVertical, setIsVertical] = useState(true);
+
   const [app, setApp] = useState(false);
   const [obj, setObj] = useState(false);
   const [colors, setColors] = useState([
@@ -164,7 +167,14 @@ const App = () => {
   //   });
   // };
   //----------------end: used in Qlik
+  const changeLandscape = e => {
+    isVertical ? (e.target.innerHTML = 'click for horizontal') : (e.target.innerHTML = 'click for vertical');
+    setIsVertical(!isVertical);
+  };
 
+  const changeDirection = () => {
+    setIsDirectionDefault(!isDirectionDefault);
+  };
   return (
     <div className='App'>
       {/* <div id='nav' /> */}
@@ -178,6 +188,8 @@ const App = () => {
               selectedDataNamesX={selectedDataNamesX}
               allSelectedColors={allSelectedColors}
             /> */}
+            <button onClick={e => changeLandscape(e)}>click for vertical</button>
+            <button onClick={e => changeDirection(e)}>click for change direction of chart</button>
             <Chart
               data={dataCube}
               dataNamesX={dataNamesX}
@@ -185,6 +197,9 @@ const App = () => {
               setColors={setColors}
               qMeasures={qMeasures}
               setNewQMeasures={setNewQMeasures}
+              isDirectionDefault={isDirectionDefault}
+              isVertical={isVertical}
+
               // sendNewSelections={sendNewSelections}
               // beginSelections={beginSelections}
             />
