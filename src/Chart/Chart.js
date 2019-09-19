@@ -64,7 +64,7 @@ const Chart = ({
   const [dataMainChart, setDataMainChart] = useState(data);
   const [differencePosBar, setDifferencePosBar] = useState(0);
   const [margin, setMargin] = useState({top: 50, right: 80, bottom: 50, left: 80, middle: 40});
-  const [begginingPosXBar, setBegginingPosXBar] = useState(0);
+  const [beggingPosXBar, setBeggingPosXBar] = useState(0);
 
   const t = d3
     .transition()
@@ -82,8 +82,7 @@ const Chart = ({
           const posX = +bar.attr('x');
           const widthChart = +bar.attr('width');
           const percentageDiff = (window.innerWidth - prev) / (prev - margin.left - margin.right) + 1;
-          console.log(`begginingPosXBar * percentageDiff:`, begginingPosXBar * percentageDiff);
-          setBegginingPosXBar(begginingPosXBar * percentageDiff);
+          setBeggingPosXBar(beggingPosXBar * percentageDiff);
           bar.attr('x', posX * percentageDiff);
           bar.attr('width', widthChart * percentageDiff);
         } else {
@@ -810,7 +809,7 @@ const Chart = ({
       .attr('x', (d, i) => {
         return widthOfSingleChart * i;
       })
-      .attr('height', function(d, i) {
+      .attr('height', (d, i) => {
         const currentYScale = yScale(yScaleObjBrush)[i];
         return isVertical ? heightBrushSvg - currentYScale(d) : innerWidth - currentYScale(d);
       })
@@ -837,14 +836,12 @@ const Chart = ({
     //I can't use arrow function as I will not have an access to this//////////////////
     ///////////////////////////////////////////////////////////////////////////////////
 
-    let begginingPosXBarTemp = begginingPosXBar,
-      x,
-      nx,
+    let beggingPosXBarTemp = beggingPosXBar,
       tempDifferencePosBar;
 
     function dragstartedBar(d) {
-      begginingPosXBarTemp = +d3.event.sourceEvent.clientX - differencePosBar;
-      setBegginingPosXBar(begginingPosXBarTemp);
+      beggingPosXBarTemp = +d3.event.sourceEvent.clientX - differencePosBar;
+      setBeggingPosXBar(beggingPosXBarTemp);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////
@@ -857,14 +854,12 @@ const Chart = ({
       const allRectsFromMiniChart = SVGB.selectAll(`.groupRects`);
       const bar = SVGB.select('#bar');
       const currPosX = +bar.attr('x');
-      const bandwidth = xScale.bandwidth();
-      // console.log(`bandwidth:`, bandwidth);
       let firstTansValue;
       let startArr = [],
         endArr = [],
         startNum = 0,
-        endNum = 1,
-        lastElem;
+        endNum = 1;
+
       allRectsFromMiniChart.each(function(d, i) {
         const strTrans = d3.select(this).attr('transform');
         if (i === 0) {
@@ -888,12 +883,11 @@ const Chart = ({
       });
       startNum = +d3.select(startArr[0]).attr('id');
       endNum = +d3.select(endArr[0]).attr('id');
-      console.log(`endArr:`, endArr);
 
       let copyData = [...data];
       const filteredDataMainChart = copyData.splice(startNum, endNum - startNum);
       setDataMainChart(filteredDataMainChart);
-      tempDifferencePosBar = +d3.event.sourceEvent.clientX - begginingPosXBarTemp;
+      tempDifferencePosBar = +d3.event.sourceEvent.clientX - beggingPosXBarTemp;
       setDifferencePosBar(tempDifferencePosBar);
       bar.attr('x', tempDifferencePosBar);
     }
