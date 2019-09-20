@@ -118,7 +118,6 @@ const App = () => {
                 //   qNums: (2)[(939.5828045388848, 539200)]
                 // }
               });
-
             setDataCube(newData);
             setIsCreateCubeDone(true);
           }
@@ -175,6 +174,7 @@ const App = () => {
   const changeDirection = () => {
     setIsDirectionDefault(!isDirectionDefault);
   };
+
   return (
     <div className='App'>
       {/* <div id='nav' /> */}
@@ -188,9 +188,11 @@ const App = () => {
               selectedDataNamesX={selectedDataNamesX}
               allSelectedColors={allSelectedColors}
             /> */}
+
             <button onClick={e => changeLandscape(e)}>click for vertical</button>
             <button onClick={e => changeDirection(e)}>click for change direction of chart</button>
             <Chart
+              setDataCube={setDataCube}
               data={dataCube}
               dataNamesX={dataNamesX}
               colors={colors}

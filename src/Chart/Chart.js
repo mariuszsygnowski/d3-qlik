@@ -4,7 +4,7 @@
 // I still might want to use in the future that components
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////// TABLE OF CONTENT ////////////////////////////////////////////////
+//////////////////////////////////// TABLE OF CONTENT //////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////// 1.    Set-up SVG and wrappers - from approximately line 104 ///////////////////
 //////////////// 2.    Initiate scales - from approximately line 133 ///////////////////////////
@@ -29,6 +29,8 @@
 
 /* eslint-disable */
 import React, {useState, useEffect, useRef} from 'react';
+import FakeData from './FakeData';
+
 import * as d3 from 'd3';
 import './Chart.scss';
 
@@ -42,7 +44,8 @@ const Chart = ({
   qMeasures,
   setNewQMeasures,
   isDirectionDefault,
-  isVertical
+  isVertical,
+  setDataCube
 }) => {
   const responsiveHeight = () => {
     if (window.innerHeight < 500) {
@@ -65,6 +68,10 @@ const Chart = ({
   const [differencePosBar, setDifferencePosBar] = useState(0);
   const [margin, setMargin] = useState({top: 50, right: 80, bottom: 50, left: 80, middle: 40});
   const [beggingPosXBar, setBeggingPosXBar] = useState(0);
+  const [beggingPosLineEnd, setBeggingPosLineEnd] = useState(0);
+  const [differencePosLineEnd, setDifferencePosLineEnd] = useState(0);
+  const initialWidthBrush = 200;
+  const [widthBrush, setWidthBrush] = useState(initialWidthBrush);
 
   const t = d3
     .transition()
@@ -313,9 +320,16 @@ const Chart = ({
       .append('rect')
       //UPDATE
       .merge(allRectsInGroupG)
-      .transition(t)
       .attr('id', (d, i) => i)
       .attr('class', 'allRectsInGroupG')
+      .transition(t)
+      .attr('height', (d, i) => {
+        const currentYScale = yScale(yScaleObj)[i];
+        return isVertical ? innerHeight - heightBrushSvg - currentYScale(d) : innerWidth - currentYScale(d);
+      })
+      .attr('width', (d, i) => {
+        return widthOfSingleChartU;
+      })
       .attr('y', (d, i) => {
         const currentYScale = yScale(yScaleObj)[i];
         return isVertical
@@ -328,13 +342,6 @@ const Chart = ({
       })
       .attr('x', (d, i) => {
         return widthOfSingleChartU * i;
-      })
-      .attr('height', (d, i) => {
-        const currentYScale = yScale(yScaleObj)[i];
-        return isVertical ? innerHeight - heightBrushSvg - currentYScale(d) : innerWidth - currentYScale(d);
-      })
-      .attr('width', (d, i) => {
-        return widthOfSingleChartU;
       })
       .attr('fill', (d, i) => {
         return colors[i];
@@ -837,7 +844,9 @@ const Chart = ({
     ///////////////////////////////////////////////////////////////////////////////////
 
     let beggingPosXBarTemp = beggingPosXBar,
-      tempDifferencePosBar;
+      beggingPosLineEndTemp = beggingPosLineEnd,
+      tempDifferencePosBar = 0,
+      tempDifferencePosLineEnd = 0;
 
     function dragstartedBar(d) {
       beggingPosXBarTemp = +d3.event.sourceEvent.clientX - differencePosBar;
@@ -849,9 +858,9 @@ const Chart = ({
     //function when is dragged - after when you click and hold and start moving////////
     ///////////////////////////////////////////////////////////////////////////////////
 
-    const widthBrush = 130;
     function draggedBar(d) {
       const allRectsFromMiniChart = SVGB.selectAll(`.groupRects`);
+
       const bar = SVGB.select('#bar');
       const currPosX = +bar.attr('x');
       let firstTansValue;
@@ -888,6 +897,7 @@ const Chart = ({
       const filteredDataMainChart = copyData.splice(startNum, endNum - startNum);
       setDataMainChart(filteredDataMainChart);
       tempDifferencePosBar = +d3.event.sourceEvent.clientX - beggingPosXBarTemp;
+
       setDifferencePosBar(tempDifferencePosBar);
       bar.attr('x', tempDifferencePosBar);
     }
@@ -902,8 +912,168 @@ const Chart = ({
     ///////////////////// 6.3 Brush rect //////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////////
 
+    const allBrushEle = SVGB.selectAll('g.brush').data([
+      'create only one element g so in this array is only one element'
+    ]);
+
+    //ENTER
+    allBrushEle
+      .enter()
+      .append('g')
+      .attr('class', 'brush')
+      //UPDATE
+      .merge(allBrushEle)
+      .attr('transform', `translate(${translateFirstValue},${-heightBrushSvg})`);
+
+    //EXIT
+    allBrushEle.exit().remove();
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////// 6.4 Brush start line //////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+
     //SELECT AND DATA JOIN
-    const bar = SVGB.selectAll('#bar').data(['create only one element g so in this array is only one element']);
+    const lineStart = allBrushEle
+      .selectAll('.brushLineS')
+      .data(['create only one element g so in this array is only one element']);
+    //ENTER
+    lineStart
+      .enter()
+      .append('line')
+      .attr('class', 'brushLineS')
+      .attr('cursor', 'e-resize')
+      //UPDATE
+      .merge(lineStart)
+      .attr('x1', 0 + differencePosBar)
+      .attr('x2', 0 + differencePosBar)
+      .attr('y1', heightBrushSvg)
+      .attr('y2', 0)
+      .attr('stroke-width', 1)
+      .attr('stroke', 'black');
+
+    //EXIT
+    lineStart.exit().remove();
+    ///////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////// 6.4 Brush end line //////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+    function dragstartedLineEnd(d) {
+      beggingPosLineEndTemp = +d3.event.sourceEvent.clientX - differencePosLineEnd;
+      setBeggingPosLineEnd(beggingPosLineEndTemp);
+    }
+    function draggedLineEnd(d) {
+      tempDifferencePosLineEnd = +d3.event.sourceEvent.clientX - beggingPosLineEndTemp;
+      setDifferencePosLineEnd(tempDifferencePosLineEnd);
+      setWidthBrush(initialWidthBrush + tempDifferencePosLineEnd);
+
+      const allRectsFromMiniChart = SVGB.selectAll(`.groupRects`);
+
+      const bar = SVGB.select('#bar');
+      const currPosX = +bar.attr('x');
+      let firstTansValue;
+      let startArr = [],
+        endArr = [],
+        startNum = 0,
+        endNum = 1;
+
+      allRectsFromMiniChart.each(function(d, i) {
+        const strTrans = d3.select(this).attr('transform');
+        if (i === 0) {
+          firstTansValue = +strTrans.substring(strTrans.lastIndexOf('(') + 1, strTrans.lastIndexOf(','));
+        }
+        const valTransformDim = +strTrans.substring(strTrans.lastIndexOf('(') + 1, strTrans.lastIndexOf(','));
+        if (i === data.length - 1) {
+          endArr.push(this);
+        } else {
+          if (valTransformDim - firstTansValue - widthBrush - tempDifferencePosLineEnd >= currPosX) {
+            endArr.push(this);
+          }
+        }
+
+        //this "if" telling if beginning position is on the chart then start adding add to array
+        //so then I know that first value is my starting point: startNum value
+        // console.log(`valTransformDim:`, valTransformDim);
+        if (valTransformDim - firstTansValue - firstTansValue + step >= currPosX) {
+          startArr.push(this);
+        }
+      });
+      startNum = +d3.select(startArr[0]).attr('id');
+      endNum = +d3.select(endArr[0]).attr('id');
+      let copyData = [...data];
+      const filteredDataMainChart = copyData.splice(startNum, endNum - startNum);
+      setDataMainChart(filteredDataMainChart);
+    }
+    function dragendedLineEnd(d) {}
+
+    //SELECT AND DATA JOIN
+    const lineEnd = allBrushEle
+      .selectAll('.brushLineE')
+      .data(['create only one element g so in this array is only one element']);
+
+    //ENTER
+    lineEnd
+      .enter()
+      .append('line')
+      .attr('class', 'brushLineE')
+      .attr('cursor', 'e-resize')
+      //UPDATE
+      .merge(lineEnd)
+      .attr('x1', widthBrush + differencePosBar)
+      .attr('y1', heightBrushSvg)
+      .attr('x2', widthBrush + differencePosBar)
+      .attr('y2', 0)
+      .attr('stroke-width', 1)
+      .attr('stroke', 'black');
+
+    //EXIT
+    lineEnd.exit().remove();
+
+    const triangleStart = allBrushEle
+      .selectAll('.triangleStart')
+      .data(['create only one element g so in this array is only one element']);
+
+    triangleStart
+      .enter()
+      .append('path')
+      .attr('class', 'triangleStart')
+      .attr('cursor', 'e-resize')
+      .merge(triangleStart)
+      .attr('d', d3.symbol().type(d3.symbolTriangle))
+      .attr('transform', `translate(${differencePosBar - 4},${heightBrushSvg / 2})rotate(-90)`)
+      .call(
+        d3
+          .drag()
+          .on('start', dragstartedLineEnd)
+          .on('drag', draggedLineEnd)
+          .on('end', dragendedLineEnd)
+      );
+
+    triangleStart.exit().remove();
+
+    const triangleEnd = allBrushEle
+      .selectAll('.triangleEnd')
+      .data(['create only one element g so in this array is only one element']);
+
+    triangleEnd
+      .enter()
+      .append('path')
+      .attr('class', 'triangleEnd')
+      .attr('cursor', 'e-resize')
+      .merge(triangleEnd)
+      .attr('d', d3.symbol().type(d3.symbolTriangle))
+      .attr('transform', `translate(${widthBrush + differencePosBar + 4},${heightBrushSvg / 2})rotate(90)`)
+      .call(
+        d3
+          .drag()
+          .on('start', dragstartedLineEnd)
+          .on('drag', draggedLineEnd)
+          .on('end', dragendedLineEnd)
+      );
+
+    triangleEnd.exit().remove();
+
+    //SELECT AND DATA JOIN
+    const bar = allBrushEle.selectAll('#bar').data(['create only one element g so in this array is only one element']);
 
     //ENTER
     bar
@@ -915,16 +1085,15 @@ const Chart = ({
       .merge(bar)
       .attr('width', widthBrush)
       .attr('height', heightBrushSvg)
-      .attr('transform', `translate(${translateFirstValue},${-heightBrushSvg})`)
-      .attr('opacity', 0.2);
 
-    bar.call(
-      d3
-        .drag()
-        .on('start', dragstartedBar)
-        .on('drag', draggedBar)
-        .on('end', dragendedBar)
-    );
+      .attr('opacity', 0.2)
+      .call(
+        d3
+          .drag()
+          .on('start', dragstartedBar)
+          .on('drag', draggedBar)
+          .on('end', dragendedBar)
+      );
 
     //EXIT
     bar.exit().remove();
@@ -942,7 +1111,9 @@ const Chart = ({
     isVertical,
     isDirectionDefault,
     dataMainChart,
-    differencePosBar
+    differencePosBar,
+    widthBrush,
+    differencePosLineEnd
   ]);
 
   //--------------------beginning: stuff when working on real data
@@ -969,7 +1140,16 @@ const Chart = ({
   //   setInSelectionMode(true);
   // };
   //--------------------end: stuff when working on real data
-
+  const [numOfDim, setNumOfDim] = useState(10);
+  const [numOfEleInEachDim, setNumOfEleInEachDim] = useState(3);
+  const [minValue, setMinValue] = useState(400);
+  const [maxValue, setMaxValue] = useState(1200);
+  const useFakeData = e => {
+    e.preventDefault();
+    const newData = FakeData(numOfDim, numOfEleInEachDim, minValue, maxValue);
+    setDataCube(newData);
+    setDataMainChart(newData);
+  };
   return (
     <div className='chart3'>
       {/* <div className='navBar'>
@@ -981,6 +1161,47 @@ const Chart = ({
           cancelSelectionHandleClick={cancelSelectionHandleClick}
         />
       </div> */}
+      <form>
+        number of dimensions:
+        <input
+          type='number'
+          name='numOfDim'
+          value={numOfDim}
+          onChange={e => setNumOfDim(+e.target.value)}
+          style={{width: '40px'}}
+        />
+        {'  '}
+        number of charts in each dimension:
+        <input
+          type='number'
+          name='numOfEleInEachDim'
+          style={{width: '40px'}}
+          value={numOfEleInEachDim}
+          onChange={e => setNumOfEleInEachDim(+e.target.value)}
+        />
+        {'  '}
+        minValue:
+        <input
+          type='number'
+          step='100'
+          name='minValue'
+          style={{width: '60px'}}
+          value={minValue}
+          onChange={e => setMinValue(+e.target.value)}
+        />
+        {'  '}
+        maxValue:
+        <input
+          type='number'
+          step='100'
+          name='maxValue'
+          style={{width: '60px'}}
+          value={maxValue}
+          onChange={e => setMaxValue(+e.target.value)}
+        />
+        {'  '}
+        <button onClick={e => useFakeData(e)}>create fake data</button>
+      </form>
       <div>
         <svg ref={ref} className='chart3Svg' />
       </div>
